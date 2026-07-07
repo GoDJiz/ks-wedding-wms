@@ -15,7 +15,9 @@ export default function StorageTestPage() {
     if (!file) return;
 
     if (file.size > MAX_BYTES) {
-      setStatus("❌ File exceeds the 10MB limit — rejected client-side (as required).");
+      setStatus(
+        "❌ File exceeds the 10MB limit — rejected client-side (as required)."
+      );
       return;
     }
 
