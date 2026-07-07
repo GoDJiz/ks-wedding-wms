@@ -1,0 +1,14 @@
+{
+  "common": {
+    "appName": "Wedding Management System",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "loading": "Loading...",
+    "search": "Search"
+  },
+  "milestone0": {
+    "title": "Language Toggle Test",
+    "description": "This page confirms the Thai/English dictionary system works correctly."
+  }
+}
