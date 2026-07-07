@@ -4,10 +4,91 @@
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
+    "remove": "Remove",
+    "add": "Add",
     "loading": "Loading...",
-    "search": "Search"
+    "saving": "Saving...",
+    "search": "Search",
+    "signIn": "Sign in with Google",
+    "signOut": "Sign out",
+    "settings": "Settings",
+    "back": "Back",
+    "savedSuccessfully": "Saved successfully",
+    "somethingWrong": "Something went wrong loading this page.",
+    "tryAgain": "Try again"
   },
-  "milestone0": {
+  "nav": {
+    "settings": "Settings",
+    "project": "Wedding Project",
+    "users": "Users",
+    "permissions": "Permissions",
+    "auditLog": "Audit Log"
+  },
+  "home": {
+    "title": "Wedding Management System",
+    "subtitle": "KS Wedding",
+    "signedInAs": "Signed in as",
+    "milestone0Title": "Milestone 0 spikes"
+  },
+  "login": {
+    "title": "Wedding Management System",
+    "subtitle": "KS Wedding",
+    "whitelistNotice": "Only whitelisted admin emails can access this system."
+  },
+  "noAccess": {
+    "title": "This account isn't authorized",
+    "description": "Your email isn't on the whitelist for this project. Ask the Owner to add it in Settings → Users."
+  },
+  "noProject": {
+    "title": "No project found",
+    "description": "Your account isn't linked to any wedding project yet. Please contact the Owner."
+  },
+  "project": {
+    "pageTitle": "Wedding Project",
+    "name": "Project name",
+    "bride": "Bride",
+    "groom": "Groom",
+    "weddingDate": "Wedding date",
+    "venue": "Venue",
+    "currency": "Currency"
+  },
+  "users": {
+    "pageTitle": "Users",
+    "email": "Email",
+    "role": "Role",
+    "noUsers": "No whitelisted users yet.",
+    "roleOwner": "Owner",
+    "roleAdmin": "Admin",
+    "roleFinance": "Finance",
+    "roleOrganizer": "Organizer",
+    "roleViewer": "Viewer"
+  },
+  "permissions": {
+    "pageTitle": "Permissions",
+    "capability": "Capability",
+    "noPermissions": "No permissions configured yet.",
+    "ownerNote": "The Owner always has full access."
+  },
+  "auditLog": {
+    "pageTitle": "Audit Log",
+    "noEntries": "No activity logged yet.",
+    "who": "Who",
+    "when": "When",
+    "action": "Action",
+    "table": "Table"
+  },
+  "errors": {
+    "not_signed_in": "Please sign in first.",
+    "no_project": "No project found for this user.",
+    "not_found": "Not found, or you don't have access.",
+    "permission_denied": "You don't have permission to do this.",
+    "name_required": "Project name is required.",
+    "invalid_email": "Enter a valid email address.",
+    "already_whitelisted": "This email is already whitelisted.",
+    "invalid_input": "Invalid input.",
+    "unknown_error": "Something went wrong. Please try again."
+  },
+  "devSpike": {
     "title": "Language Toggle Test",
     "description": "This page confirms the Thai/English dictionary system works correctly."
   }

@@ -31,8 +31,10 @@ src/
 
   shared/
     ui/                         PageLayout, FormActions, Button, Card, etc. (shadcn-based)
-    lib/                        generic helpers (formatting, date utils)
-    i18n/                       dictionaries + LanguageProvider
+    lib/                        generic helpers (formatting, error codes, mapSupabaseError)
+    session/                    cross-cutting auth: requireSessionContext, signOut, clientAuth
+    logging/                    logError (client) / logErrorServer (server) — see §10
+    i18n/                       dictionaries + LanguageProvider + getDictionary
     hooks/                      cross-feature hooks (useDebounce, useMediaQuery)
 
 supabase/
@@ -182,22 +184,34 @@ Rules:
   (b) returns a typed result, never throws across the Server Action boundary
   into the client silently:
   ```ts
-  type ActionResult<T> = { ok: true; data: T } | { ok: false; message: string };
+  type ActionResult<T> = { ok: true; data: T } | { ok: false; code: ErrorCode };
   ```
-- User-facing error messages are friendly and in the active language (TH/EN)
-  — never surface a raw Postgres/Supabase error string to the UI.
+  `ErrorCode` is a fixed union (`shared/lib/errorCodes.ts`) — Server Actions
+  **never return raw English strings**. The client translates the code via
+  `tError(code)` from the active language dictionary. This is what makes
+  every error and validation message genuinely bilingual instead of
+  hardcoded to English; a raw Postgres/Supabase error is mapped to a code via
+  `shared/lib/mapSupabaseError.ts`, never surfaced directly to the UI.
+- Zod validation messages are error codes too (e.g. `"name_required"`, not
+  `"Name is required"`), translated the same way at display time.
 - Every async UI action (button click, form submit) has three visual states:
   loading, success, error — per the Definition of Done. No silent failures.
-- Client-side: a top-level error boundary (already in `app/global-error.tsx`
-  from Milestone 0) catches anything unhandled and logs it.
+- Client-side: a top-level error boundary (`app/global-error.tsx`) and a
+  shared `RouteErrorBoundary` (used by every route's `error.tsx`) catch
+  anything unhandled and log it.
 
 ---
 
 ## 10. Logging Standards
 
-- All unexpected errors go through the `logError` use case
-  (`application/logging/logError.ts`) into `application_logs` — this is the
-  single logging path, don't add a second ad-hoc logging mechanism.
+- All unexpected errors go through `shared/logging/logError.ts` (Client
+  Components) or `shared/logging/logErrorServer.ts` (Server Actions/Route
+  Handlers) into `application_logs` — these are the only two logging paths;
+  don't add a third ad-hoc mechanism. They're two separate modules rather
+  than one function branching on `typeof window`, because bundlers still
+  pull server-only imports (`next/headers`) into the client bundle even
+  behind a runtime check — `logErrorServer.ts` is marked with the
+  `server-only` package to catch that mistake at build time if it recurs.
 - Log entries always include `module` (the feature/route name) so logs are
   filterable — never leave `module` empty.
 - Never log secrets, tokens, or full request bodies containing personal bank

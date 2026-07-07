@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/infrastructure/supabase/server";
-import { logError } from "@/application/logging/logError";
+import { logErrorServer } from "@/shared/logging/logErrorServer";
 import type { ActionResult } from "@/shared/lib/actionResult";
+import { mapSupabaseError } from "@/shared/lib/mapSupabaseError";
 import type { PermissionEntry } from "../permissions.types";
 import {
   listPermissions,
@@ -27,12 +28,12 @@ export async function getPermissionMatrix(
 
     return { ok: true, data: entries };
   } catch (err) {
-    await logError({
+    await logErrorServer({
       module: "features/permissions/getPermissionMatrix",
       errorMessage: err instanceof Error ? err.message : "Unknown error",
       projectId,
     });
-    return { ok: false, message: "Something went wrong loading permissions." };
+    return { ok: false, code: "unknown_error" };
   }
 }
 
@@ -45,19 +46,16 @@ export async function togglePermission(
     const { error } = await updatePermissionRow(supabase, id, allowed);
 
     if (error) {
-      return { ok: false, message: "Only the Owner can change permissions." };
+      return { ok: false, code: mapSupabaseError(error) };
     }
 
     revalidatePath("/settings/permissions");
     return { ok: true, data: null };
   } catch (err) {
-    await logError({
+    await logErrorServer({
       module: "features/permissions/togglePermission",
       errorMessage: err instanceof Error ? err.message : "Unknown error",
     });
-    return {
-      ok: false,
-      message: "Something went wrong updating the permission.",
-    };
+    return { ok: false, code: "unknown_error" };
   }
 }

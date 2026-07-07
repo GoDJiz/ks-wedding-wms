@@ -21,7 +21,14 @@ create policy "permissions_write_owner" on permissions
   for all using (has_project_role(project_id, array['owner']));
 
 -- ── Seed function: default capability matrix for a new project ──────
--- Called once when a project is created (see features/project application layer).
+-- Called the first time a project's permissions are viewed (see
+-- features/permissions application layer).
+-- IMPORTANT: deliberately NOT `security definer`. It runs as the calling
+-- user (the default), so the `permissions_write_owner` RLS policy above
+-- still applies to every insert here — a non-owner calling this RPC for
+-- someone else's project simply fails the insert (blocked by RLS), it does
+-- not silently seed data it shouldn't. Do not add `security definer` here
+-- without also adding an explicit owner-role check inside the function body.
 create or replace function seed_default_permissions(p_project_id uuid)
 returns void
 language plpgsql

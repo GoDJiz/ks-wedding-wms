@@ -1,23 +1,21 @@
-import { redirect } from "next/navigation";
 import { PageLayout } from "@/shared/ui/PageLayout";
-import { getDefaultProjectId } from "@/features/project/application/projectActions";
+import { InlineError } from "@/shared/ui/StateViews";
+import { requireSessionContext } from "@/shared/session/requireSessionContext";
+import { getDictionary, translateErrorCode } from "@/lib/i18n/getDictionary";
 import { getPermissionMatrix } from "@/features/permissions/application/permissionsActions";
 import { PermissionMatrix } from "@/features/permissions/components/PermissionMatrix";
 
 export default async function PermissionsSettingsPage() {
-  const projectIdResult = await getDefaultProjectId();
-  if (!projectIdResult.ok) {
-    redirect("/login");
-  }
-
-  const permissionsResult = await getPermissionMatrix(projectIdResult.data);
+  const { projectId } = await requireSessionContext();
+  const { t } = await getDictionary();
+  const result = await getPermissionMatrix(projectId);
 
   return (
-    <PageLayout title="Permissions">
-      {permissionsResult.ok ? (
-        <PermissionMatrix initialEntries={permissionsResult.data} />
+    <PageLayout title={t.permissions.pageTitle}>
+      {result.ok ? (
+        <PermissionMatrix initialEntries={result.data} />
       ) : (
-        <p className="text-sm text-rose-600">{permissionsResult.message}</p>
+        <InlineError message={translateErrorCode(t, result.code)} />
       )}
     </PageLayout>
   );

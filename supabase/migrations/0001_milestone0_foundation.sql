@@ -95,6 +95,23 @@ as $$
   );
 $$;
 
+-- For rows that aren't tied to any specific project (project_id is null —
+-- e.g. an application error logged before a project context existed).
+-- Deliberately conservative: only someone who is owner/admin of AT LEAST ONE
+-- project may see/manage these, rather than the earlier (unsafe) behavior of
+-- letting ANY authenticated user manage/read them once project_id was null.
+create or replace function is_owner_or_admin_anywhere()
+returns boolean
+language sql
+security definer
+stable
+as $$
+  select exists (
+    select 1 from project_members
+    where user_id = auth.uid() and role in ('owner','admin')
+  );
+$$;
+
 -- Projects: members can read, only owner/admin can update
 create policy "projects_select_members" on projects
   for select using (is_project_member(id));
@@ -119,7 +136,10 @@ create policy "project_members_delete_owner_admin" on project_members
 -- Whitelisted emails: only owner/admin can manage; nobody else can read the list
 create policy "whitelist_owner_admin_all" on whitelisted_emails
   for all using (
-    project_id is null or has_project_role(project_id, array['owner','admin'])
+    case
+      when project_id is null then is_owner_or_admin_anywhere()
+      else has_project_role(project_id, array['owner','admin'])
+    end
   );
 
 -- Feature flags: members can read, only owner can toggle
@@ -136,7 +156,10 @@ create policy "application_logs_insert_anyone" on application_logs
 
 create policy "application_logs_select_owner_admin" on application_logs
   for select using (
-    project_id is null or has_project_role(project_id, array['owner','admin'])
+    case
+      when project_id is null then is_owner_or_admin_anywhere()
+      else has_project_role(project_id, array['owner','admin'])
+    end
   );
 
 -- ══════════════════════════════════════════════════════════════

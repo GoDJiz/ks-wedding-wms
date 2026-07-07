@@ -1,26 +1,31 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens per UI/UX Design doc: pastel blue / pastel sky blue / white,
+ * rounded corners, elderly-readable base font size. No dark mode — not in
+ * the approved design spec, and an automatic OS-driven dark mode would
+ * silently break the pastel/"liquid glass" look this app is designed around.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f0f9ff; /* sky-50 */
+  --foreground: #1e293b; /* slate-800 */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  font-size: 16px; /* elderly-readability floor, per Design Principles */
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* System font stack that renders Thai cleanly without a Google Fonts
+     build-time dependency; swap in self-hosted Noto Sans Thai later. */
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Thai", Tahoma,
+    Arial, sans-serif;
 }

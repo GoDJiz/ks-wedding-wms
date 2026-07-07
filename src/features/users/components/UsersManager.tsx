@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Button } from "@/shared/ui/Button";
+import { FormField } from "@/shared/ui/FormField";
+import { TextInput } from "@/shared/ui/TextInput";
+import { Select } from "@/shared/ui/Select";
+import { EmptyState, InlineError } from "@/shared/ui/StateViews";
 import type { WhitelistedUser } from "../users.types";
 import { inviteUser, removeUser } from "../application/usersActions";
 
@@ -14,11 +19,21 @@ export function UsersManager({
   projectId: string;
   initialUsers: WhitelistedUser[];
 }) {
+  const { t, tError } = useLanguage();
   const [users, setUsers] = useState(initialUsers);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<(typeof ROLES)[number]>("viewer");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const roleLabel = (r: string) =>
+    ({
+      owner: t.users.roleOwner,
+      admin: t.users.roleAdmin,
+      finance: t.users.roleFinance,
+      organizer: t.users.roleOrganizer,
+      viewer: t.users.roleViewer,
+    })[r] ?? r;
 
   const handleInvite = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +42,7 @@ export function UsersManager({
     startTransition(async () => {
       const result = await inviteUser({ email, role, projectId });
       if (!result.ok) {
-        setError(result.message);
+        setError(tError(result.code));
         return;
       }
       setUsers((prev) => [
@@ -49,7 +64,7 @@ export function UsersManager({
       if (result.ok) {
         setUsers((prev) => prev.filter((u) => u.id !== id));
       } else {
-        setError(result.message);
+        setError(tError(result.code));
       }
     });
   };
@@ -57,64 +72,63 @@ export function UsersManager({
   return (
     <div className="space-y-6">
       <form onSubmit={handleInvite} className="flex flex-wrap items-end gap-3">
-        <label className="flex-1 min-w-[200px]">
-          <span className="mb-1 block text-sm font-medium text-slate-600">
-            Email
-          </span>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl border border-sky-100 bg-white/80 px-4 py-3 text-sm"
-          />
-        </label>
-        <label>
-          <span className="mb-1 block text-sm font-medium text-slate-600">
-            Role
-          </span>
-          <select
+        <div className="min-w-[200px] flex-1">
+          <FormField label={t.users.email} htmlFor="invite-email">
+            <TextInput
+              id="invite-email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </FormField>
+        </div>
+        <FormField label={t.users.role} htmlFor="invite-role">
+          <Select
+            id="invite-role"
             value={role}
             onChange={(e) => setRole(e.target.value as (typeof ROLES)[number])}
-            className="rounded-xl border border-sky-100 bg-white/80 px-4 py-3 text-sm"
           >
             {ROLES.map((r) => (
               <option key={r} value={r}>
-                {r}
+                {roleLabel(r)}
               </option>
             ))}
-          </select>
-        </label>
+          </Select>
+        </FormField>
         <Button type="submit" disabled={isPending}>
-          {isPending ? "..." : "Add"}
+          {isPending ? t.common.saving : t.common.add}
         </Button>
       </form>
 
-      {error && <p className="text-sm text-rose-600">{error}</p>}
+      {error && <InlineError message={error} />}
 
-      <ul className="space-y-2">
-        {users.map((u) => (
-          <li
-            key={u.id}
-            className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3"
-          >
-            <div>
-              <p className="text-sm font-medium text-slate-700">{u.email}</p>
-              <p className="text-xs text-slate-400">{u.invitedRole}</p>
-            </div>
-            <Button
-              variant="danger"
-              onClick={() => handleRemove(u.id)}
-              disabled={isPending}
+      {users.length === 0 ? (
+        <EmptyState message={t.users.noUsers} />
+      ) : (
+        <ul className="space-y-2">
+          {users.map((u) => (
+            <li
+              key={u.id}
+              className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3"
             >
-              Remove
-            </Button>
-          </li>
-        ))}
-        {users.length === 0 && (
-          <p className="text-sm text-slate-400">No whitelisted users yet.</p>
-        )}
-      </ul>
+              <div>
+                <p className="text-sm font-medium text-slate-700">{u.email}</p>
+                <p className="text-xs text-slate-500">
+                  {roleLabel(u.invitedRole)}
+                </p>
+              </div>
+              <Button
+                variant="danger"
+                onClick={() => handleRemove(u.id)}
+                disabled={isPending}
+              >
+                {t.common.remove}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

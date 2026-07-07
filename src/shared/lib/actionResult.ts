@@ -1,2 +1,4 @@
+import type { ErrorCode } from "./errorCodes";
+
 export type ActionResult<T> =
-  { ok: true; data: T } | { ok: false; message: string };
+  { ok: true; data: T } | { ok: false; code: ErrorCode };

@@ -1,29 +1,22 @@
-import { redirect } from "next/navigation";
 import { PageLayout } from "@/shared/ui/PageLayout";
-import {
-  getDefaultProjectId,
-  getProject,
-} from "@/features/project/application/projectActions";
+import { InlineError } from "@/shared/ui/StateViews";
+import { requireSessionContext } from "@/shared/session/requireSessionContext";
+import { getDictionary, translateErrorCode } from "@/lib/i18n/getDictionary";
+import { getProject } from "@/features/project/application/projectActions";
 import { ProjectSettingsForm } from "@/features/project/components/ProjectSettingsForm";
 
 export default async function ProjectSettingsPage() {
-  const projectIdResult = await getDefaultProjectId();
-  if (!projectIdResult.ok) {
-    redirect("/login");
-  }
-
-  const projectResult = await getProject(projectIdResult.data);
-  if (!projectResult.ok) {
-    return (
-      <PageLayout title="Wedding Project">
-        <p className="text-sm text-rose-600">{projectResult.message}</p>
-      </PageLayout>
-    );
-  }
+  const { projectId } = await requireSessionContext();
+  const { t } = await getDictionary();
+  const result = await getProject(projectId);
 
   return (
-    <PageLayout title="Wedding Project">
-      <ProjectSettingsForm project={projectResult.data} />
+    <PageLayout title={t.project.pageTitle}>
+      {result.ok ? (
+        <ProjectSettingsForm project={result.data} />
+      ) : (
+        <InlineError message={translateErrorCode(t, result.code)} />
+      )}
     </PageLayout>
   );
 }

@@ -6,13 +6,14 @@ See `/docs` for:
 
 - `DEVELOPMENT_RULES.md` — binding coding standards (folder structure, naming, TypeScript, Git, security, performance)
 - `DEPLOYMENT.md` — complete, no-assumptions deployment package (GitHub, Supabase, Google OAuth, Vercel, LINE OA, Google Apps Script, final verification checklist)
+- `MILESTONE_1_REVIEW.md` — Definition of Done self-review for Milestone 1 (Foundation)
 - `MILESTONE_0_CHECKLIST.md` — functional verification checklist (mirrors §7 of DEPLOYMENT.md)
 - `RESTORE.md` — backup/restore runbook
 
 ## Milestone progress
 
 - ✅ Milestone 0 — Architecture Validation (scaffold, see `docs/MILESTONE_0_CHECKLIST.md`)
-- 🚧 Milestone 1 — Foundation (in progress): Design system primitives (`shared/ui`), Wedding Project settings, Users (whitelist) management, Permission matrix. Still to do: Google Login polish/route protection guard, i18n rollout to these new pages, mobile/tablet pass, Audit Log wiring.
+- ✅ Milestone 1 — Foundation (complete pending a real-environment performance check — see `docs/MILESTONE_1_REVIEW.md` for the full DoD self-review, including two RLS security fixes and a server-side logging bug found during review)
 
 ## Local development
 

@@ -1,26 +1,21 @@
-import { redirect } from "next/navigation";
 import { PageLayout } from "@/shared/ui/PageLayout";
-import { getDefaultProjectId } from "@/features/project/application/projectActions";
+import { InlineError } from "@/shared/ui/StateViews";
+import { requireSessionContext } from "@/shared/session/requireSessionContext";
+import { getDictionary, translateErrorCode } from "@/lib/i18n/getDictionary";
 import { getWhitelistedUsers } from "@/features/users/application/usersActions";
 import { UsersManager } from "@/features/users/components/UsersManager";
 
 export default async function UsersSettingsPage() {
-  const projectIdResult = await getDefaultProjectId();
-  if (!projectIdResult.ok) {
-    redirect("/login");
-  }
-
-  const usersResult = await getWhitelistedUsers(projectIdResult.data);
+  const { projectId } = await requireSessionContext();
+  const { t } = await getDictionary();
+  const result = await getWhitelistedUsers(projectId);
 
   return (
-    <PageLayout title="Users">
-      {usersResult.ok ? (
-        <UsersManager
-          projectId={projectIdResult.data}
-          initialUsers={usersResult.data}
-        />
+    <PageLayout title={t.users.pageTitle}>
+      {result.ok ? (
+        <UsersManager projectId={projectId} initialUsers={result.data} />
       ) : (
-        <p className="text-sm text-rose-600">{usersResult.message}</p>
+        <InlineError message={translateErrorCode(t, result.code)} />
       )}
     </PageLayout>
   );

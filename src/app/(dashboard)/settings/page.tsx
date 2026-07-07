@@ -1,21 +1,25 @@
 import Link from "next/link";
 import { PageLayout } from "@/shared/ui/PageLayout";
+import { getDictionary } from "@/lib/i18n/getDictionary";
 
-const settingsLinks = [
-  { href: "/settings/project", label: "Wedding Project" },
-  { href: "/settings/users", label: "Users" },
-  { href: "/settings/permissions", label: "Permissions" },
-];
+export default async function SettingsIndexPage() {
+  const { t } = await getDictionary();
 
-export default function SettingsIndexPage() {
+  const settingsLinks = [
+    { href: "/settings/project", label: t.nav.project },
+    { href: "/settings/users", label: t.nav.users },
+    { href: "/settings/permissions", label: t.nav.permissions },
+    { href: "/settings/audit-log", label: t.nav.auditLog },
+  ];
+
   return (
-    <PageLayout title="Settings">
+    <PageLayout title={t.common.settings}>
       <ul className="space-y-2">
         {settingsLinks.map((link) => (
           <li key={link.href}>
             <Link
               href={link.href}
-              className="block rounded-2xl bg-white/70 px-4 py-4 text-sm font-medium text-slate-700 hover:bg-white"
+              className="block min-h-14 rounded-2xl bg-white/70 px-4 py-4 text-base font-medium text-slate-700 hover:bg-white"
             >
               {link.label}
             </Link>

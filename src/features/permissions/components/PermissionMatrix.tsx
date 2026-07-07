@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { EmptyState, InlineError } from "@/shared/ui/StateViews";
 import type { PermissionEntry } from "../permissions.types";
 import { ROLES } from "../permissions.types";
 import { togglePermission } from "../application/permissionsActions";
@@ -10,6 +12,7 @@ export function PermissionMatrix({
 }: {
   initialEntries: PermissionEntry[];
 }) {
+  const { t, tError } = useLanguage();
   const [entries, setEntries] = useState(initialEntries);
   const [error, setError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -30,7 +33,7 @@ export function PermissionMatrix({
     startTransition(async () => {
       const result = await togglePermission(entry.id, nextAllowed);
       if (!result.ok) {
-        setError(result.message);
+        setError(tError(result.code));
         // revert on failure
         setEntries((prev) =>
           prev.map((e) =>
@@ -41,27 +44,37 @@ export function PermissionMatrix({
     });
   };
 
+  const roleLabel = (r: string) =>
+    ({
+      owner: t.users.roleOwner,
+      admin: t.users.roleAdmin,
+      finance: t.users.roleFinance,
+      organizer: t.users.roleOrganizer,
+      viewer: t.users.roleViewer,
+    })[r] ?? r;
+
   if (capabilityKeys.length === 0) {
-    return (
-      <p className="text-sm text-slate-400">No permissions configured yet.</p>
-    );
+    return <EmptyState message={t.permissions.noPermissions} />;
   }
 
   return (
     <div className="space-y-4">
-      {error && <p className="text-sm text-rose-600">{error}</p>}
+      {error && <InlineError message={error} />}
+      <p className="text-xs text-slate-500">{t.permissions.ownerNote}</p>
 
       <div className="overflow-x-auto rounded-2xl bg-white/70">
         <table className="w-full min-w-[600px] text-left text-sm">
           <thead>
             <tr className="border-b border-sky-100">
-              <th className="p-3 font-medium text-slate-500">Capability</th>
+              <th className="p-3 font-medium text-slate-500">
+                {t.permissions.capability}
+              </th>
               {ROLES.map((role) => (
                 <th
                   key={role}
-                  className="p-3 text-center font-medium text-slate-500 capitalize"
+                  className="p-3 text-center font-medium text-slate-500"
                 >
-                  {role}
+                  {roleLabel(role)}
                 </th>
               ))}
             </tr>
@@ -85,13 +98,18 @@ export function PermissionMatrix({
                     );
                   return (
                     <td key={role} className="p-3 text-center">
-                      <input
-                        type="checkbox"
-                        checked={entry.allowed}
-                        onChange={() => handleToggle(entry)}
-                        disabled={role === "owner"} // Owner is always fully permitted
-                        className="h-5 w-5 accent-sky-400"
-                      />
+                      {/* 44px+ tappable label around the checkbox, not just the
+                          20px input itself — accessibility/elderly touch target */}
+                      <label className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center">
+                        <input
+                          type="checkbox"
+                          checked={entry.allowed}
+                          onChange={() => handleToggle(entry)}
+                          disabled={role === "owner"}
+                          aria-label={`${capabilityKey} — ${roleLabel(role)}`}
+                          className="h-5 w-5 accent-sky-400"
+                        />
+                      </label>
                     </td>
                   );
                 })}

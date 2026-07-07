@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/infrastructure/supabase/server";
-import { logError } from "@/application/logging/logError";
+import { logErrorServer } from "@/shared/logging/logErrorServer";
 import type { ActionResult } from "@/shared/lib/actionResult";
+import type { ErrorCode } from "@/shared/lib/errorCodes";
+import { mapSupabaseError } from "@/shared/lib/mapSupabaseError";
 import {
   inviteUserSchema,
   type InviteUserInput,
@@ -23,12 +25,12 @@ export async function getWhitelistedUsers(
     const users = await listWhitelistedUsers(supabase, projectId);
     return { ok: true, data: users };
   } catch (err) {
-    await logError({
+    await logErrorServer({
       module: "features/users/getWhitelistedUsers",
       errorMessage: err instanceof Error ? err.message : "Unknown error",
       projectId,
     });
-    return { ok: false, message: "Something went wrong loading users." };
+    return { ok: false, code: "unknown_error" };
   }
 }
 
@@ -37,10 +39,9 @@ export async function inviteUser(
 ): Promise<ActionResult<null>> {
   const parsed = inviteUserSchema.safeParse(input);
   if (!parsed.success) {
-    return {
-      ok: false,
-      message: parsed.error.issues[0]?.message ?? "Invalid input.",
-    };
+    const code = (parsed.error.issues[0]?.message ??
+      "invalid_input") as ErrorCode;
+    return { ok: false, code };
   }
 
   try {
@@ -53,22 +54,18 @@ export async function inviteUser(
     );
 
     if (error) {
-      return {
-        ok: false,
-        message:
-          "You don't have permission to add users, or this email is already whitelisted.",
-      };
+      return { ok: false, code: mapSupabaseError(error) };
     }
 
     revalidatePath("/settings/users");
     return { ok: true, data: null };
   } catch (err) {
-    await logError({
+    await logErrorServer({
       module: "features/users/inviteUser",
       errorMessage: err instanceof Error ? err.message : "Unknown error",
       projectId: parsed.data.projectId,
     });
-    return { ok: false, message: "Something went wrong inviting the user." };
+    return { ok: false, code: "unknown_error" };
   }
 }
 
@@ -78,19 +75,16 @@ export async function removeUser(id: string): Promise<ActionResult<null>> {
     const { error } = await deleteWhitelistedUser(supabase, id);
 
     if (error) {
-      return {
-        ok: false,
-        message: "You don't have permission to remove this user.",
-      };
+      return { ok: false, code: mapSupabaseError(error) };
     }
 
     revalidatePath("/settings/users");
     return { ok: true, data: null };
   } catch (err) {
-    await logError({
+    await logErrorServer({
       module: "features/users/removeUser",
       errorMessage: err instanceof Error ? err.message : "Unknown error",
     });
-    return { ok: false, message: "Something went wrong removing the user." };
+    return { ok: false, code: "unknown_error" };
   }
 }

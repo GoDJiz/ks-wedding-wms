@@ -5,6 +5,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { FormActions } from "@/shared/ui/FormActions";
+import { FormField } from "@/shared/ui/FormField";
+import { TextInput } from "@/shared/ui/TextInput";
+import { TextArea } from "@/shared/ui/TextArea";
+import type { ErrorCode } from "@/shared/lib/errorCodes";
 import type { Project } from "../domain/Project";
 import { updateProjectSchema, type UpdateProjectInput } from "../project.types";
 import { updateProject } from "../application/projectActions";
@@ -14,11 +18,11 @@ export type ProjectSettingsFormProps = {
 };
 
 export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
-  const { t } = useLanguage();
+  const { t, tError } = useLanguage();
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">(
     "idle"
   );
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
 
   const {
     register,
@@ -40,7 +44,7 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
 
   const onSubmit = async (values: UpdateProjectInput) => {
     setStatus("saving");
-    setErrorMessage(null);
+    setErrorCode(null);
 
     const result = await updateProject(values);
 
@@ -48,61 +52,56 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
       setStatus("success");
     } else {
       setStatus("error");
-      setErrorMessage(result.message);
+      setErrorCode(result.code);
     }
   };
 
+  // Zod validation messages are error codes too (e.g. "name_required") —
+  // translate them the same way Server Action errors are translated.
+  const fieldError = (code?: string) =>
+    code ? tError(code as ErrorCode) : undefined;
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <Field label="Project name" error={errors.name?.message}>
-        <input
-          {...register("name")}
-          className="w-full rounded-xl border border-sky-100 bg-white/80 px-4 py-3 text-sm"
-        />
-      </Field>
+      <FormField
+        label={t.project.name}
+        error={fieldError(errors.name?.message)}
+      >
+        <TextInput {...register("name")} />
+      </FormField>
 
-      <Field label="Bride" error={errors.brideName?.message}>
-        <input
-          {...register("brideName")}
-          className="w-full rounded-xl border border-sky-100 bg-white/80 px-4 py-3 text-sm"
-        />
-      </Field>
+      <FormField label={t.project.bride}>
+        <TextInput {...register("brideName")} />
+      </FormField>
 
-      <Field label="Groom" error={errors.groomName?.message}>
-        <input
-          {...register("groomName")}
-          className="w-full rounded-xl border border-sky-100 bg-white/80 px-4 py-3 text-sm"
-        />
-      </Field>
+      <FormField label={t.project.groom}>
+        <TextInput {...register("groomName")} />
+      </FormField>
 
-      <Field label="Wedding date" error={errors.weddingDate?.message}>
-        <input
-          type="date"
-          {...register("weddingDate")}
-          className="w-full rounded-xl border border-sky-100 bg-white/80 px-4 py-3 text-sm"
-        />
-      </Field>
+      <FormField label={t.project.weddingDate}>
+        <TextInput type="date" {...register("weddingDate")} />
+      </FormField>
 
-      <Field label="Venue" error={errors.venue?.message}>
-        <textarea
-          {...register("venue")}
-          rows={3}
-          className="w-full rounded-xl border border-sky-100 bg-white/80 px-4 py-3 text-sm"
-        />
-      </Field>
+      <FormField label={t.project.venue}>
+        <TextArea rows={3} {...register("venue")} />
+      </FormField>
 
-      <Field label="Currency" error={errors.currency?.message}>
-        <input
-          {...register("currency")}
-          className="w-24 rounded-xl border border-sky-100 bg-white/80 px-4 py-3 text-sm"
-        />
-      </Field>
+      <FormField
+        label={t.project.currency}
+        error={fieldError(errors.currency?.message)}
+      >
+        <TextInput className="w-24" {...register("currency")} />
+      </FormField>
 
       {status === "success" && (
-        <p className="text-sm text-emerald-600">Saved successfully.</p>
+        <p role="status" className="text-sm text-emerald-600">
+          {t.common.savedSuccessfully}
+        </p>
       )}
-      {status === "error" && errorMessage && (
-        <p className="text-sm text-rose-600">{errorMessage}</p>
+      {status === "error" && errorCode && (
+        <p role="alert" className="text-sm text-rose-600">
+          {tError(errorCode)}
+        </p>
       )}
 
       <FormActions
@@ -112,27 +111,5 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
         cancelLabel={t.common.cancel}
       />
     </form>
-  );
-}
-
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1 block text-sm font-medium text-slate-600">
-        {label}
-      </span>
-      {children}
-      {error && (
-        <span className="mt-1 block text-xs text-rose-500">{error}</span>
-      )}
-    </label>
   );
 }
