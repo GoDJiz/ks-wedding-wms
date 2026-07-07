@@ -7,6 +7,7 @@ See `/docs` for:
 - `DEVELOPMENT_RULES.md` — binding coding standards (folder structure, naming, TypeScript, Git, security, performance)
 - `DEPLOYMENT.md` — complete, no-assumptions deployment package (GitHub, Supabase, Google OAuth, Vercel, LINE OA, Google Apps Script, final verification checklist)
 - `MILESTONE_1_REVIEW.md` — Definition of Done self-review for Milestone 1 (Foundation)
+- `PRODUCTION_VALIDATION.md` — pre-`v0.1` production readiness checklist (run against the real deployed environment)
 - `MILESTONE_0_CHECKLIST.md` — functional verification checklist (mirrors §7 of DEPLOYMENT.md)
 - `RESTORE.md` — backup/restore runbook
 
