@@ -6,8 +6,7 @@
  * this spike just proves the connection works with a couple of test rows.
  */
 
-const EDGE_FUNCTION_URL =
-  "https://YOUR_PROJECT_REF.supabase.co/functions/v1/sync-guests-test";
+const EDGE_FUNCTION_URL = "https://YOUR_PROJECT_REF.supabase.co/functions/v1/sync-guests-test";
 const SHARED_SECRET = "PASTE_SHEET_SYNC_SHARED_SECRET_HERE"; // matches SHEET_SYNC_SHARED_SECRET env var
 
 function testSyncCall() {

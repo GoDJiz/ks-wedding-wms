@@ -13,17 +13,9 @@ export default async function Home() {
         <p className="mt-1 text-sm text-slate-500">KS Wedding</p>
 
         {user ? (
-          <>
-            <p className="mt-6 text-sm text-slate-600">
-              Signed in as {user.email}
-            </p>
-            <Link
-              href="/settings"
-              className="mt-4 inline-block rounded-2xl bg-sky-100 px-6 py-3 text-sm font-medium text-slate-700 hover:bg-sky-200"
-            >
-              Settings
-            </Link>
-          </>
+          <p className="mt-6 text-sm text-slate-600">
+            Signed in as {user.email}
+          </p>
         ) : (
           <Link
             href="/login"
@@ -36,16 +28,8 @@ export default async function Home() {
         <div className="mt-8 border-t border-sky-100 pt-4 text-left text-xs text-slate-400">
           <p className="mb-2 font-medium text-slate-500">Milestone 0 spikes:</p>
           <ul className="space-y-1">
-            <li>
-              <Link className="text-sky-600 underline" href="/dev/i18n-test">
-                i18n toggle test
-              </Link>
-            </li>
-            <li>
-              <Link className="text-sky-600 underline" href="/dev/storage-test">
-                Storage upload test
-              </Link>
-            </li>
+            <li><Link className="text-sky-600 underline" href="/dev/i18n-test">i18n toggle test</Link></li>
+            <li><Link className="text-sky-600 underline" href="/dev/storage-test">Storage upload test</Link></li>
           </ul>
         </div>
       </div>

@@ -6,8 +6,8 @@ export default function NoAccessPage() {
           This account isn&apos;t authorized
         </h1>
         <p className="mt-2 text-sm text-slate-500">
-          Your email isn&apos;t on the whitelist for this project. Ask the Owner
-          to add it in Settings → Users.
+          Your email isn&apos;t on the whitelist for this project. Ask the
+          Owner to add it in Settings → Users.
         </p>
       </div>
     </main>

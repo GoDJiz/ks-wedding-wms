@@ -3,19 +3,11 @@
 Personal wedding ERP-style management system. Next.js + Supabase, free-tier only.
 
 See `/docs` for:
-
-- `DEVELOPMENT_RULES.md` — binding coding standards (folder structure, naming, TypeScript, Git, security, performance)
-- `DEPLOYMENT.md` — complete, no-assumptions deployment package (GitHub, Supabase, Google OAuth, Vercel, LINE OA, Google Apps Script, final verification checklist)
+- `DEPLOYMENT.md` — **start here** — complete, no-assumptions deployment package (GitHub, Supabase, Google OAuth, Vercel, LINE OA, Google Apps Script, final verification checklist)
 - `MILESTONE_0_CHECKLIST.md` — functional verification checklist (mirrors §7 of DEPLOYMENT.md)
 - `RESTORE.md` — backup/restore runbook
 
-## Milestone progress
-
-- ✅ Milestone 0 — Architecture Validation (scaffold, see `docs/MILESTONE_0_CHECKLIST.md`)
-- 🚧 Milestone 1 — Foundation (in progress): Design system primitives (`shared/ui`), Wedding Project settings, Users (whitelist) management, Permission matrix. Still to do: Google Login polish/route protection guard, i18n rollout to these new pages, mobile/tablet pass, Audit Log wiring.
-
 ## Local development
-
 ```bash
 npm install
 cp .env.example .env.local   # fill in real values, see docs/SETUP.md
@@ -23,7 +15,6 @@ npm run dev
 ```
 
 ## Project structure (Clean Architecture)
-
 ```
 src/
   domain/            — entities, business rules (framework-agnostic)

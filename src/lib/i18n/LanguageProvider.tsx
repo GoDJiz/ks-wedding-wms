@@ -19,7 +19,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Language>("th"); // Thai is the primary/default language
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang, t: dictionaries[lang] }}>
+    <LanguageContext.Provider
+      value={{ lang, setLang, t: dictionaries[lang] }}
+    >
       {children}
     </LanguageContext.Provider>
   );

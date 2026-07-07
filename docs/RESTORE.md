@@ -1,7 +1,6 @@
 # Backup & Restore Runbook
 
 ## Backups (see System Architecture doc §8 for the full strategy)
-
 1. Supabase automatic daily backups (free tier, short rolling window) — passive, no action needed.
 2. Manual DB export, anytime:
    ```bash
@@ -12,7 +11,6 @@
 5. Owner "Export All" (built in a later milestone): one Settings button that bundles a JSON data dump + Storage file list into a single downloadable zip, logged in Audit Log.
 
 ## Restore (manual, documented — no one-click tool)
-
 1. Provision a Supabase project (new or existing).
 2. Run all migrations in `supabase/migrations/` in order to recreate the schema.
 3. Import the data dump:

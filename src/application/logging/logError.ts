@@ -15,8 +15,7 @@ export type LogErrorInput = {
 export async function logError(input: LogErrorInput) {
   try {
     const supabase = createSupabaseBrowserClient();
-    const ua =
-      typeof navigator !== "undefined" ? navigator.userAgent : "unknown";
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "unknown";
 
     await supabase.from("application_logs").insert({
       project_id: input.projectId ?? null,

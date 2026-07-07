@@ -20,5 +20,4 @@ Work through `docs/SETUP.md` first, then verify each item below. Tag `v0.0` once
       → `git tag v0.0 && git push --tags` once all boxes above are checked.
 
 ## What's intentionally NOT in Milestone 0
-
 No real feature UI, no real business data, no production RLS policies beyond the ones needed to prove the pattern (Milestones 1+ add the full table set from the Database Design doc). This milestone only proves the architecture holds — it is deliberately throwaway-adjacent (the `/dev/*` spike pages will be deleted once Milestone 0 is signed off).
