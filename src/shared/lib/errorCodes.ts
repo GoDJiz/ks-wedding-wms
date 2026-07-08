@@ -14,4 +14,7 @@ export type ErrorCode =
   | "invalid_email"
   | "already_whitelisted"
   | "invalid_input"
+  | "file_too_large"
+  | "amount_required"
+  | "date_required"
   | "unknown_error";

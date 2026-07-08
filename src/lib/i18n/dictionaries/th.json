@@ -22,7 +22,11 @@
     "project": "งานแต่งงาน",
     "users": "ผู้ใช้งาน",
     "permissions": "สิทธิ์การใช้งาน",
-    "auditLog": "ประวัติการเปลี่ยนแปลง"
+    "auditLog": "ประวัติการเปลี่ยนแปลง",
+    "budget": "งบประมาณ",
+    "expense": "ค่าใช้จ่าย",
+    "paymentAccounts": "บัญชีการเงิน",
+    "dashboard": "แดชบอร์ด"
   },
   "home": {
     "title": "ระบบจัดการงานแต่งงาน",
@@ -86,10 +90,72 @@
     "invalid_email": "กรุณาระบุอีเมลที่ถูกต้อง",
     "already_whitelisted": "อีเมลนี้ได้รับอนุญาตอยู่แล้ว",
     "invalid_input": "ข้อมูลไม่ถูกต้อง",
-    "unknown_error": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง"
+    "unknown_error": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
+    "file_too_large": "ไฟล์ต้องไม่เกิน 10MB",
+    "amount_required": "กรุณาระบุจำนวนเงินที่มากกว่า 0",
+    "date_required": "กรุณาระบุวันที่"
   },
   "devSpike": {
     "title": "ทดสอบการสลับภาษา",
     "description": "หน้านี้ใช้เพื่อยืนยันว่าระบบภาษาไทย/อังกฤษทำงานถูกต้อง"
+  },
+  "dashboard": {
+    "pageTitle": "แดชบอร์ด",
+    "totalBudget": "งบประมาณทั้งหมด",
+    "spent": "ใช้ไปแล้ว",
+    "remaining": "คงเหลือ",
+    "income": "รายรับ",
+    "profitLoss": "กำไร/ขาดทุน",
+    "categoryBreakdown": "แยกตามหมวดหมู่",
+    "monthlyTrend": "แนวโน้มรายเดือน",
+    "overBudget": "เกินงบ"
+  },
+  "paymentAccounts": {
+    "pageTitle": "บัญชีการเงิน",
+    "name": "ชื่อบัญชี",
+    "type": "ประเภท",
+    "owner": "เจ้าของ",
+    "typeBank": "ธนาคาร",
+    "typeCash": "เงินสด",
+    "ownerBride": "เจ้าสาว",
+    "ownerGroom": "เจ้าบ่าว",
+    "ownerJoint": "ร่วมกัน",
+    "noAccounts": "ยังไม่มีบัญชีการเงิน"
+  },
+  "budget": {
+    "pageTitle": "งบประมาณ",
+    "category": "หมวดหมู่",
+    "budgeted": "งบที่ตั้งไว้",
+    "spent": "ใช้ไปแล้ว",
+    "remaining": "คงเหลือ",
+    "addCategory": "เพิ่มหมวดหมู่",
+    "categoryName": "ชื่อหมวดหมู่",
+    "noCategories": "ยังไม่มีหมวดหมู่งบประมาณ",
+    "overBudget": "เกินงบ"
+  },
+  "expense": {
+    "pageTitle": "ค่าใช้จ่าย",
+    "addExpense": "เพิ่มค่าใช้จ่าย",
+    "date": "วันที่",
+    "vendor": "ผู้ให้บริการ",
+    "category": "หมวดหมู่",
+    "account": "บัญชี",
+    "amount": "จำนวนเงิน",
+    "vat": "ภาษีมูลค่าเพิ่ม",
+    "discount": "ส่วนลด",
+    "shipping": "ค่าจัดส่ง",
+    "withholdingTax": "ภาษีหัก ณ ที่จ่าย",
+    "netTotal": "ยอดสุทธิ",
+    "paymentMethod": "วิธีชำระเงิน",
+    "remark": "หมายเหตุ",
+    "receipt": "ใบเสร็จ",
+    "noExpenses": "ยังไม่มีรายการค่าใช้จ่าย",
+    "methodCash": "เงินสด",
+    "methodBankTransfer": "โอนเงิน",
+    "methodPromptpay": "พร้อมเพย์",
+    "methodQrPayment": "คิวอาร์เพย์เมนต์",
+    "noVendor": "— ไม่ระบุ —",
+    "uploadReceipt": "อัปโหลดใบเสร็จ",
+    "fileTooLarge": "ไฟล์ต้องไม่เกิน 10MB"
   }
 }

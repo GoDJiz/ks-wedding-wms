@@ -22,7 +22,11 @@
     "project": "Wedding Project",
     "users": "Users",
     "permissions": "Permissions",
-    "auditLog": "Audit Log"
+    "auditLog": "Audit Log",
+    "budget": "Budget",
+    "expense": "Expense",
+    "paymentAccounts": "Payment Accounts",
+    "dashboard": "Dashboard"
   },
   "home": {
     "title": "Wedding Management System",
@@ -86,10 +90,72 @@
     "invalid_email": "Enter a valid email address.",
     "already_whitelisted": "This email is already whitelisted.",
     "invalid_input": "Invalid input.",
-    "unknown_error": "Something went wrong. Please try again."
+    "unknown_error": "Something went wrong. Please try again.",
+    "file_too_large": "File must be under 10MB.",
+    "amount_required": "Enter an amount greater than 0.",
+    "date_required": "Date is required."
   },
   "devSpike": {
     "title": "Language Toggle Test",
     "description": "This page confirms the Thai/English dictionary system works correctly."
+  },
+  "dashboard": {
+    "pageTitle": "Dashboard",
+    "totalBudget": "Total Budget",
+    "spent": "Spent",
+    "remaining": "Remaining",
+    "income": "Income",
+    "profitLoss": "Profit / Loss",
+    "categoryBreakdown": "Category Breakdown",
+    "monthlyTrend": "Monthly Trend",
+    "overBudget": "Over Budget"
+  },
+  "paymentAccounts": {
+    "pageTitle": "Payment Accounts",
+    "name": "Account name",
+    "type": "Type",
+    "owner": "Owner",
+    "typeBank": "Bank",
+    "typeCash": "Cash",
+    "ownerBride": "Bride",
+    "ownerGroom": "Groom",
+    "ownerJoint": "Joint",
+    "noAccounts": "No payment accounts yet."
+  },
+  "budget": {
+    "pageTitle": "Budget",
+    "category": "Category",
+    "budgeted": "Budgeted",
+    "spent": "Spent",
+    "remaining": "Remaining",
+    "addCategory": "Add category",
+    "categoryName": "Category name",
+    "noCategories": "No budget categories yet.",
+    "overBudget": "Over budget"
+  },
+  "expense": {
+    "pageTitle": "Expense",
+    "addExpense": "Add expense",
+    "date": "Date",
+    "vendor": "Vendor",
+    "category": "Category",
+    "account": "Account",
+    "amount": "Amount",
+    "vat": "VAT",
+    "discount": "Discount",
+    "shipping": "Shipping",
+    "withholdingTax": "Withholding tax",
+    "netTotal": "Net total",
+    "paymentMethod": "Payment method",
+    "remark": "Remark",
+    "receipt": "Receipt",
+    "noExpenses": "No expenses yet.",
+    "methodCash": "Cash",
+    "methodBankTransfer": "Bank transfer",
+    "methodPromptpay": "PromptPay",
+    "methodQrPayment": "QR payment",
+    "noVendor": "— None —",
+    "uploadReceipt": "Upload receipt",
+    "fileTooLarge": "File must be under 10MB"
   }
 }
