@@ -17,12 +17,20 @@ export default async function Home() {
             <p className="mt-6 text-sm text-slate-600">
               {t.home.signedInAs} {user.email}
             </p>
-            <Link
-              href="/settings"
-              className="mt-4 inline-flex min-h-12 items-center rounded-2xl bg-sky-100 px-6 py-3 text-sm font-medium text-slate-700 hover:bg-sky-200"
-            >
-              {t.common.settings}
-            </Link>
+            <div className="mt-4 flex justify-center gap-2">
+              <Link
+                href="/dashboard"
+                className="inline-flex min-h-12 items-center rounded-2xl bg-sky-400 px-6 py-3 text-sm font-medium text-white hover:bg-sky-500"
+              >
+                {t.nav.dashboard}
+              </Link>
+              <Link
+                href="/settings"
+                className="inline-flex min-h-12 items-center rounded-2xl bg-sky-100 px-6 py-3 text-sm font-medium text-slate-700 hover:bg-sky-200"
+              >
+                {t.common.settings}
+              </Link>
+            </div>
           </>
         ) : (
           <Link
