@@ -173,7 +173,7 @@ Prerequisite: `docs/DEPLOYMENT.md` fully completed, `v0.0` already tagged.
       bundle: `view-source:` the deployed site and search for the key
       fragment, or check Vercel's build output — it should never appear.
 - [ ] Confirm `.env.local` was never committed to GitHub (`git log --all --
-  .env.local` should show nothing).
+.env.local` should show nothing).
 - [ ] Confirm the Google OAuth consent screen and redirect URIs match
       exactly what's in `docs/DEPLOYMENT.md` — no stray extra redirect URIs
       left over from testing.

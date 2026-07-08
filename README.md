@@ -8,6 +8,9 @@ See `/docs` for:
 - `DEPLOYMENT.md` — complete, no-assumptions deployment package (GitHub, Supabase, Google OAuth, Vercel, LINE OA, Google Apps Script, final verification checklist)
 - `MILESTONE_1_REVIEW.md` — Definition of Done self-review for Milestone 1 (Foundation)
 - `PRODUCTION_VALIDATION.md` — pre-`v0.1` production readiness checklist (run against the real deployed environment)
+- `PRODUCTION_VALIDATION_M2.md` — pre-`v0.2` addendum: seed script, Budget, Expense, Dashboard, Payment Accounts
+- `SEED_STRATEGY.md` — development seed data (safe, isolated, repeatable) — see `supabase/seed/dev_seed.sql`
+- `MILESTONE_2_REVIEW.md` — Definition of Done self-review for Milestone 2 (Budget & Expenses)
 - `MILESTONE_0_CHECKLIST.md` — functional verification checklist (mirrors §7 of DEPLOYMENT.md)
 - `RESTORE.md` — backup/restore runbook
 
@@ -15,6 +18,7 @@ See `/docs` for:
 
 - ✅ Milestone 0 — Architecture Validation (scaffold, see `docs/MILESTONE_0_CHECKLIST.md`)
 - ✅ Milestone 1 — Foundation (complete pending a real-environment performance check — see `docs/MILESTONE_1_REVIEW.md` for the full DoD self-review, including two RLS security fixes and a server-side logging bug found during review)
+- ✅ Milestone 2 — Budget & Expenses (complete pending a real-environment performance check + one real run of the seed script — see `docs/MILESTONE_2_REVIEW.md`)
 
 ## Local development
 
