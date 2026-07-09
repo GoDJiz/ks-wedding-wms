@@ -11,6 +11,7 @@ See `/docs` for:
 - `PRODUCTION_VALIDATION_M2.md` — pre-`v0.2` addendum: seed script, Budget, Expense, Dashboard, Payment Accounts
 - `SEED_STRATEGY.md` — development seed data (safe, isolated, repeatable) — see `supabase/seed/dev_seed.sql`
 - `MILESTONE_2_REVIEW.md` — Definition of Done self-review for Milestone 2 (Budget & Expenses)
+- `SIGNIFICANT_FINDINGS.md` — running log of significant architectural decisions/security findings/production issues (replaces a full review doc per milestone, per the lighter-weight process from Milestone 3 onward)
 - `MILESTONE_0_CHECKLIST.md` — functional verification checklist (mirrors §7 of DEPLOYMENT.md)
 - `RESTORE.md` — backup/restore runbook
 
@@ -19,6 +20,7 @@ See `/docs` for:
 - ✅ Milestone 0 — Architecture Validation (scaffold, see `docs/MILESTONE_0_CHECKLIST.md`)
 - ✅ Milestone 1 — Foundation (complete pending a real-environment performance check — see `docs/MILESTONE_1_REVIEW.md` for the full DoD self-review, including two RLS security fixes and a server-side logging bug found during review)
 - ✅ Milestone 2 — Budget & Expenses (complete pending a real-environment performance check + one real run of the seed script — see `docs/MILESTONE_2_REVIEW.md`)
+- ✅ Milestone 3 — Reimbursement (complete pending real-environment testing on the public form — see `docs/SIGNIFICANT_FINDINGS.md` for the Storage RLS security fix and other decisions from this milestone)
 
 ## Local development
 
