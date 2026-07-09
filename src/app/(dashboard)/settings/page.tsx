@@ -8,6 +8,7 @@ export default async function SettingsIndexPage() {
   const settingsLinks = [
     { href: "/settings/project", label: t.nav.project },
     { href: "/settings/payment-accounts", label: t.nav.paymentAccounts },
+    { href: "/settings/integrations", label: t.nav.integrations },
     { href: "/settings/users", label: t.nav.users },
     { href: "/settings/permissions", label: t.nav.permissions },
     { href: "/settings/audit-log", label: t.nav.auditLog },
