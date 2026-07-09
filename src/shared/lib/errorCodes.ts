@@ -22,4 +22,6 @@ export type ErrorCode =
   | "bank_info_required"
   | "reject_reason_required"
   | "duplicate_possible"
+  | "no_csv_url"
+  | "csv_fetch_failed"
   | "unknown_error";

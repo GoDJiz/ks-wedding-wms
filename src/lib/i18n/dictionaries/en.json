@@ -27,7 +27,11 @@
     "expense": "Expense",
     "paymentAccounts": "Payment Accounts",
     "dashboard": "Dashboard",
-    "reimbursement": "Reimbursement"
+    "reimbursement": "Reimbursement",
+    "guests": "Guests",
+    "income": "Income",
+    "integrations": "Integrations",
+    "activityFeed": "Activity"
   },
   "home": {
     "title": "Wedding Management System",
@@ -99,7 +103,9 @@
     "receipt_required": "Attach at least one photo.",
     "bank_info_required": "Enter your bank account details.",
     "reject_reason_required": "Enter a reason for rejection.",
-    "duplicate_possible": "This request may be a duplicate."
+    "duplicate_possible": "This request may be a duplicate.",
+    "no_csv_url": "Enter a CSV URL before syncing.",
+    "csv_fetch_failed": "Could not fetch data from the CSV URL."
   },
   "devSpike": {
     "title": "Language Toggle Test",
@@ -216,5 +222,70 @@
     "rejectReason": "Reason for rejection",
     "viewFiles": "View attached files",
     "back": "Back to list"
+  },
+  "guest": {
+    "pageTitle": "Guests",
+    "name": "Name",
+    "phone": "Phone",
+    "email": "Email",
+    "table": "Table",
+    "rsvp": "RSVP",
+    "rsvpPending": "Pending",
+    "rsvpAttending": "Attending",
+    "rsvpDeclined": "Declined",
+    "addGuest": "Add guest",
+    "editGuest": "Edit guest",
+    "noGuests": "No guests yet.",
+    "searchPlaceholder": "Search guest name...",
+    "filterAll": "All",
+    "sourceWalkIn": "Walk-in",
+    "sourceSheet": "Synced",
+    "locked": "Manually edited (protected from sync)",
+    "transferAmount": "Transfer amount",
+    "envelopeAmount": "Envelope amount"
+  },
+  "income": {
+    "pageTitle": "Income",
+    "type": "Type",
+    "amount": "Amount",
+    "date": "Date",
+    "account": "Account",
+    "guest": "Guest",
+    "addIncome": "Add income",
+    "noIncome": "No income yet.",
+    "typeEnvelope": "Envelope",
+    "typeTransfer": "Transfer",
+    "typeCash": "Cash",
+    "typeSponsor": "Sponsor",
+    "typeGift": "Gift",
+    "typeGold": "Gold",
+    "typeCheque": "Cheque",
+    "typeOther": "Other",
+    "noGuestLinked": "— None —"
+  },
+  "sync": {
+    "pageTitle": "Guest Sync (Google Sheets)",
+    "csvUrl": "Published CSV URL from Google Sheets",
+    "fieldMapping": "Field Mapping",
+    "sourceField": "Sheet column",
+    "targetField": "System field",
+    "syncNow": "Sync Now",
+    "syncing": "Syncing...",
+    "lastRuns": "Sync History",
+    "noRuns": "No sync runs yet.",
+    "allowOverwrite": "Allow sync to overwrite manually-edited records",
+    "summaryProcessed": "Processed",
+    "summaryInserted": "Inserted",
+    "summaryUpdated": "Updated",
+    "summarySkipped": "Skipped",
+    "summaryFailed": "Failed",
+    "statusSuccess": "Success",
+    "statusPartial": "Partial",
+    "statusFailed": "Failed",
+    "noCsvUrl": "Enter a CSV URL before syncing."
+  },
+  "activity": {
+    "pageTitle": "Activity",
+    "noActivity": "No activity yet."
   }
 }

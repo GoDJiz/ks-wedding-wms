@@ -27,7 +27,11 @@
     "expense": "ค่าใช้จ่าย",
     "paymentAccounts": "บัญชีการเงิน",
     "dashboard": "แดชบอร์ด",
-    "reimbursement": "คำขอเบิกเงินคืน"
+    "reimbursement": "คำขอเบิกเงินคืน",
+    "guests": "แขก",
+    "income": "รายรับ",
+    "integrations": "การเชื่อมต่อ",
+    "activityFeed": "กิจกรรมล่าสุด"
   },
   "home": {
     "title": "ระบบจัดการงานแต่งงาน",
@@ -99,7 +103,9 @@
     "receipt_required": "กรุณาแนบรูปอย่างน้อย 1 รูป",
     "bank_info_required": "กรุณาระบุข้อมูลบัญชีธนาคาร",
     "reject_reason_required": "กรุณาระบุเหตุผลในการปฏิเสธ",
-    "duplicate_possible": "คำขอนี้อาจซ้ำกับคำขออื่น"
+    "duplicate_possible": "คำขอนี้อาจซ้ำกับคำขออื่น",
+    "no_csv_url": "กรุณาระบุลิงก์ CSV ก่อนซิงค์",
+    "csv_fetch_failed": "ไม่สามารถดึงข้อมูลจากลิงก์ CSV ได้"
   },
   "devSpike": {
     "title": "ทดสอบการสลับภาษา",
@@ -216,5 +222,70 @@
     "rejectReason": "เหตุผลในการปฏิเสธ",
     "viewFiles": "ดูไฟล์แนบ",
     "back": "กลับไปที่รายการ"
+  },
+  "guest": {
+    "pageTitle": "แขก",
+    "name": "ชื่อ",
+    "phone": "เบอร์โทร",
+    "email": "อีเมล",
+    "table": "โต๊ะ",
+    "rsvp": "สถานะตอบรับ",
+    "rsvpPending": "รอตอบรับ",
+    "rsvpAttending": "มาร่วมงาน",
+    "rsvpDeclined": "ไม่มาร่วมงาน",
+    "addGuest": "เพิ่มแขก",
+    "editGuest": "แก้ไขข้อมูลแขก",
+    "noGuests": "ยังไม่มีข้อมูลแขก",
+    "searchPlaceholder": "ค้นหาชื่อแขก...",
+    "filterAll": "ทั้งหมด",
+    "sourceWalkIn": "เพิ่มเอง",
+    "sourceSheet": "ซิงค์จากชีต",
+    "locked": "แก้ไขด้วยตนเอง (ไม่ถูกซิงค์ทับ)",
+    "transferAmount": "ยอดโอน",
+    "envelopeAmount": "ยอดซอง"
+  },
+  "income": {
+    "pageTitle": "รายรับ",
+    "type": "ประเภท",
+    "amount": "จำนวนเงิน",
+    "date": "วันที่",
+    "account": "บัญชี",
+    "guest": "แขก",
+    "addIncome": "เพิ่มรายรับ",
+    "noIncome": "ยังไม่มีรายรับ",
+    "typeEnvelope": "ซองงานแต่ง",
+    "typeTransfer": "โอนเงิน",
+    "typeCash": "เงินสด",
+    "typeSponsor": "สปอนเซอร์",
+    "typeGift": "ของขวัญ",
+    "typeGold": "ทอง",
+    "typeCheque": "เช็ค",
+    "typeOther": "อื่นๆ",
+    "noGuestLinked": "— ไม่ระบุแขก —"
+  },
+  "sync": {
+    "pageTitle": "ซิงค์ข้อมูลแขก (Google Sheets)",
+    "csvUrl": "ลิงก์ CSV ที่เผยแพร่จาก Google Sheets",
+    "fieldMapping": "การจับคู่ฟิลด์",
+    "sourceField": "คอลัมน์ในชีต",
+    "targetField": "ฟิลด์ในระบบ",
+    "syncNow": "ซิงค์ตอนนี้",
+    "syncing": "กำลังซิงค์...",
+    "lastRuns": "ประวัติการซิงค์",
+    "noRuns": "ยังไม่มีประวัติการซิงค์",
+    "allowOverwrite": "อนุญาตให้ซิงค์ทับข้อมูลที่แก้ไขด้วยตนเอง",
+    "summaryProcessed": "ประมวลผล",
+    "summaryInserted": "เพิ่มใหม่",
+    "summaryUpdated": "อัปเดต",
+    "summarySkipped": "ข้าม",
+    "summaryFailed": "ล้มเหลว",
+    "statusSuccess": "สำเร็จ",
+    "statusPartial": "สำเร็จบางส่วน",
+    "statusFailed": "ล้มเหลว",
+    "noCsvUrl": "กรุณาระบุลิงก์ CSV ก่อนซิงค์"
+  },
+  "activity": {
+    "pageTitle": "กิจกรรมล่าสุด",
+    "noActivity": "ยังไม่มีกิจกรรม"
   }
 }
