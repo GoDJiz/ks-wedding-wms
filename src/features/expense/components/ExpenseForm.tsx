@@ -12,7 +12,7 @@ import { FormActions } from "@/shared/ui/FormActions";
 import { InlineError } from "@/shared/ui/StateViews";
 import { createSupabaseBrowserClient } from "@/infrastructure/supabase/client";
 import type { ErrorCode } from "@/shared/lib/errorCodes";
-import type { SelectOption } from "../domain/Expense";
+import type { SelectOption } from "@/shared/lib/SelectOption";
 import { createExpenseSchema, type CreateExpenseInput } from "../expense.types";
 import {
   createExpense,

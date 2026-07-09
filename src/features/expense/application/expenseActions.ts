@@ -6,7 +6,8 @@ import { logErrorServer } from "@/shared/logging/logErrorServer";
 import type { ActionResult } from "@/shared/lib/actionResult";
 import type { ErrorCode } from "@/shared/lib/errorCodes";
 import { mapSupabaseError } from "@/shared/lib/mapSupabaseError";
-import type { Expense, SelectOption } from "../domain/Expense";
+import type { Expense } from "../domain/Expense";
+import type { SelectOption } from "@/shared/lib/SelectOption";
 import { createExpenseSchema, type CreateExpenseInput } from "../expense.types";
 import {
   listExpenses,

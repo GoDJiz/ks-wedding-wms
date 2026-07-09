@@ -26,7 +26,8 @@
     "budget": "Budget",
     "expense": "Expense",
     "paymentAccounts": "Payment Accounts",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "reimbursement": "Reimbursement"
   },
   "home": {
     "title": "Wedding Management System",
@@ -93,7 +94,12 @@
     "unknown_error": "Something went wrong. Please try again.",
     "file_too_large": "File must be under 10MB.",
     "amount_required": "Enter an amount greater than 0.",
-    "date_required": "Date is required."
+    "date_required": "Date is required.",
+    "phone_required": "Enter a phone number.",
+    "receipt_required": "Attach at least one photo.",
+    "bank_info_required": "Enter your bank account details.",
+    "reject_reason_required": "Enter a reason for rejection.",
+    "duplicate_possible": "This request may be a duplicate."
   },
   "devSpike": {
     "title": "Language Toggle Test",
@@ -157,5 +163,58 @@
     "noVendor": "— None —",
     "uploadReceipt": "Upload receipt",
     "fileTooLarge": "File must be under 10MB"
+  },
+  "reimbursementPublic": {
+    "title": "Request Reimbursement",
+    "subtitle": "Fill in the details below — takes under 2 minutes",
+    "requesterName": "Your name",
+    "phone": "Phone number",
+    "purchaseDate": "Purchase date",
+    "amount": "Amount to reimburse",
+    "paymentMethod": "How should we pay you back?",
+    "methodCash": "Cash",
+    "methodBankTransfer": "Bank transfer",
+    "methodPromptpay": "PromptPay",
+    "methodQrPayment": "QR payment",
+    "bankInfo": "Bank account details (bank, account number, account name)",
+    "category": "Category (if known)",
+    "categoryUnsure": "Not sure / let admin decide",
+    "description": "What was this for? (optional)",
+    "uploadPhoto": "Attach a receipt photo",
+    "uploadPhotoCash": "Attach a receipt or cash photo",
+    "uploadPhotoTransfer": "Attach a transfer slip photo",
+    "submit": "Submit request",
+    "submitting": "Submitting...",
+    "uploadingFile": "Uploading photo...",
+    "successTitle": "Request submitted!",
+    "successMessage": "Thank you! The team will review your request soon.",
+    "referenceCode": "Reference code",
+    "invalidLink": "This link is invalid or the project wasn't found.",
+    "addAnother": "Submit another request"
+  },
+  "reimbursementAdmin": {
+    "pageTitle": "Reimbursement Requests",
+    "statusAll": "All",
+    "statusSubmitted": "Submitted",
+    "statusApproved": "Approved",
+    "statusRejected": "Rejected",
+    "statusPaid": "Paid",
+    "statusCompleted": "Completed",
+    "statusCancelled": "Cancelled",
+    "noRequests": "No requests with this status.",
+    "requestedAmount": "Requested",
+    "approvedAmount": "Approved",
+    "duplicateWarning": "Warning: this may be a duplicate (same amount and date as another request).",
+    "approve": "Approve",
+    "reject": "Reject",
+    "markPaid": "Mark as Paid",
+    "markCompleted": "Mark as Completed",
+    "cancel": "Cancel Request",
+    "assignCategory": "Assign category",
+    "assignAccount": "Pay from account",
+    "partialReason": "Reason (if not approving the full amount)",
+    "rejectReason": "Reason for rejection",
+    "viewFiles": "View attached files",
+    "back": "Back to list"
   }
 }

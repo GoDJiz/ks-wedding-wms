@@ -17,4 +17,9 @@ export type ErrorCode =
   | "file_too_large"
   | "amount_required"
   | "date_required"
+  | "phone_required"
+  | "receipt_required"
+  | "bank_info_required"
+  | "reject_reason_required"
+  | "duplicate_possible"
   | "unknown_error";

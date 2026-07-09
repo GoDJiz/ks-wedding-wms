@@ -14,6 +14,7 @@ export async function DashboardHeader({
     { href: "/dashboard", label: t.nav.dashboard },
     { href: "/budget", label: t.nav.budget },
     { href: "/expense", label: t.nav.expense },
+    { href: "/reimbursement", label: t.nav.reimbursement },
     { href: "/settings", label: t.nav.settings },
   ];
 

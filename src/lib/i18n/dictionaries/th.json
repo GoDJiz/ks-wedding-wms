@@ -26,7 +26,8 @@
     "budget": "งบประมาณ",
     "expense": "ค่าใช้จ่าย",
     "paymentAccounts": "บัญชีการเงิน",
-    "dashboard": "แดชบอร์ด"
+    "dashboard": "แดชบอร์ด",
+    "reimbursement": "คำขอเบิกเงินคืน"
   },
   "home": {
     "title": "ระบบจัดการงานแต่งงาน",
@@ -93,7 +94,12 @@
     "unknown_error": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
     "file_too_large": "ไฟล์ต้องไม่เกิน 10MB",
     "amount_required": "กรุณาระบุจำนวนเงินที่มากกว่า 0",
-    "date_required": "กรุณาระบุวันที่"
+    "date_required": "กรุณาระบุวันที่",
+    "phone_required": "กรุณาระบุเบอร์โทรศัพท์",
+    "receipt_required": "กรุณาแนบรูปอย่างน้อย 1 รูป",
+    "bank_info_required": "กรุณาระบุข้อมูลบัญชีธนาคาร",
+    "reject_reason_required": "กรุณาระบุเหตุผลในการปฏิเสธ",
+    "duplicate_possible": "คำขอนี้อาจซ้ำกับคำขออื่น"
   },
   "devSpike": {
     "title": "ทดสอบการสลับภาษา",
@@ -157,5 +163,58 @@
     "noVendor": "— ไม่ระบุ —",
     "uploadReceipt": "อัปโหลดใบเสร็จ",
     "fileTooLarge": "ไฟล์ต้องไม่เกิน 10MB"
+  },
+  "reimbursementPublic": {
+    "title": "ขอเบิกเงินคืน",
+    "subtitle": "กรอกข้อมูลด้านล่าง ใช้เวลาไม่ถึง 2 นาที",
+    "requesterName": "ชื่อผู้ขอเบิก",
+    "phone": "เบอร์โทรศัพท์",
+    "purchaseDate": "วันที่ซื้อ",
+    "amount": "จำนวนเงินที่ขอเบิก",
+    "paymentMethod": "วิธีรับเงินคืน",
+    "methodCash": "เงินสด",
+    "methodBankTransfer": "โอนเงิน",
+    "methodPromptpay": "พร้อมเพย์",
+    "methodQrPayment": "คิวอาร์เพย์เมนต์",
+    "bankInfo": "ข้อมูลบัญชีธนาคาร (ธนาคาร, เลขบัญชี, ชื่อบัญชี)",
+    "category": "หมวดหมู่ (ถ้าทราบ)",
+    "categoryUnsure": "ไม่แน่ใจ / ให้แอดมินเลือก",
+    "description": "รายละเอียด (ถ้ามี)",
+    "uploadPhoto": "แนบรูปใบเสร็จ",
+    "uploadPhotoCash": "แนบรูปใบเสร็จหรือรูปเงินสด",
+    "uploadPhotoTransfer": "แนบรูปสลิปโอนเงิน",
+    "submit": "ส่งคำขอ",
+    "submitting": "กำลังส่งคำขอ...",
+    "uploadingFile": "กำลังอัปโหลดรูปภาพ...",
+    "successTitle": "ส่งคำขอสำเร็จ!",
+    "successMessage": "ขอบคุณค่ะ/ครับ ทีมงานจะตรวจสอบคำขอของคุณเร็วๆ นี้",
+    "referenceCode": "รหัสอ้างอิง",
+    "invalidLink": "ลิงก์ไม่ถูกต้องหรือไม่พบโปรเจกต์",
+    "addAnother": "ส่งคำขอใหม่"
+  },
+  "reimbursementAdmin": {
+    "pageTitle": "คำขอเบิกเงินคืน",
+    "statusAll": "ทั้งหมด",
+    "statusSubmitted": "ส่งคำขอแล้ว",
+    "statusApproved": "อนุมัติแล้ว",
+    "statusRejected": "ปฏิเสธ",
+    "statusPaid": "จ่ายแล้ว",
+    "statusCompleted": "เสร็จสิ้น",
+    "statusCancelled": "ยกเลิก",
+    "noRequests": "ไม่มีคำขอในสถานะนี้",
+    "requestedAmount": "จำนวนที่ขอ",
+    "approvedAmount": "จำนวนที่อนุมัติ",
+    "duplicateWarning": "คำเตือน: อาจมีคำขอซ้ำ (จำนวนเงินและวันที่ตรงกับคำขออื่น)",
+    "approve": "อนุมัติ",
+    "reject": "ปฏิเสธ",
+    "markPaid": "ทำเครื่องหมายว่าจ่ายแล้ว",
+    "markCompleted": "ทำเครื่องหมายว่าเสร็จสิ้น",
+    "cancel": "ยกเลิกคำขอ",
+    "assignCategory": "กำหนดหมวดหมู่",
+    "assignAccount": "จ่ายจากบัญชี",
+    "partialReason": "เหตุผล (กรณีอนุมัติไม่เต็มจำนวน)",
+    "rejectReason": "เหตุผลในการปฏิเสธ",
+    "viewFiles": "ดูไฟล์แนบ",
+    "back": "กลับไปที่รายการ"
   }
 }

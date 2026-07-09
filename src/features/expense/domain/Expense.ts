@@ -20,5 +20,3 @@ export type Expense = {
   paymentMethod: PaymentMethod;
   createdAt: string;
 };
-
-export type SelectOption = { id: string; name: string };

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Expense, SelectOption } from "../domain/Expense";
+import type { Expense } from "../domain/Expense";
+import type { SelectOption } from "@/shared/lib/SelectOption";
 
 const EXPENSE_SELECT =
   "id, date, amount, vat, discount, shipping, withholding_tax, net_total, remark, payment_method, created_at, " +
