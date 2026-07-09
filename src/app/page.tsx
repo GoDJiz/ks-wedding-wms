@@ -40,24 +40,6 @@ export default async function Home() {
             {t.common.signIn}
           </Link>
         )}
-
-        <div className="mt-8 border-t border-sky-100 pt-4 text-left text-xs text-slate-500">
-          <p className="mb-2 font-medium text-slate-600">
-            {t.home.milestone0Title}:
-          </p>
-          <ul className="space-y-1">
-            <li>
-              <Link className="text-sky-600 underline" href="/dev/i18n-test">
-                i18n toggle test
-              </Link>
-            </li>
-            <li>
-              <Link className="text-sky-600 underline" href="/dev/storage-test">
-                Storage upload test
-              </Link>
-            </li>
-          </ul>
-        </div>
       </div>
     </main>
   );
