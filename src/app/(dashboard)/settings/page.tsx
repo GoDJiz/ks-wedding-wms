@@ -13,6 +13,7 @@ export default async function SettingsIndexPage() {
     { href: "/settings/users", label: t.nav.users },
     { href: "/settings/permissions", label: t.nav.permissions },
     { href: "/settings/audit-log", label: t.nav.auditLog },
+    { href: "/settings/system-health", label: t.nav.systemHealth },
   ];
 
   return (
