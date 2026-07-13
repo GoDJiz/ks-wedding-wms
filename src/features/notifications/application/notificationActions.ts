@@ -7,6 +7,8 @@ import type { ActionResult } from "@/shared/lib/actionResult";
 import { mapSupabaseError } from "@/shared/lib/mapSupabaseError";
 import type { NotificationRecipient } from "../domain/NotificationRecipient";
 import { sendLineMessage } from "@/shared/notifications/lineClient";
+import { requireSessionContext } from "@/shared/session/requireSessionContext";
+import { sendUpcomingPaymentReminders } from "@/shared/notifications/paymentReminders";
 
 export async function getRecipients(
   projectId: string
@@ -96,4 +98,22 @@ export async function sendTestNotification(
   });
   if (error) return { ok: false, code: "unknown_error" };
   return { ok: true, data: null };
+}
+
+export async function sendPaymentRemindersNow(
+  projectId: string
+): Promise<ActionResult<{ remindedCount: number }>> {
+  try {
+    await requireSessionContext();
+    const supabase = await createSupabaseServerClient();
+    const result = await sendUpcomingPaymentReminders(supabase, projectId);
+    return { ok: true, data: result };
+  } catch (err) {
+    await logErrorServer({
+      module: "features/notifications/sendPaymentRemindersNow",
+      errorMessage: err instanceof Error ? err.message : "Unknown error",
+      projectId,
+    });
+    return { ok: false, code: "unknown_error" };
+  }
 }

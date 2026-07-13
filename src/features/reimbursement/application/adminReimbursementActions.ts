@@ -7,6 +7,7 @@ import { logErrorServer } from "@/shared/logging/logErrorServer";
 import type { ActionResult } from "@/shared/lib/actionResult";
 import type { ErrorCode } from "@/shared/lib/errorCodes";
 import { mapSupabaseError } from "@/shared/lib/mapSupabaseError";
+import { notifyProjectRecipients } from "@/shared/notifications/notifyRecipients";
 import type {
   ReimbursementRequest,
   ReimbursementFileInfo,
@@ -127,6 +128,14 @@ export async function approveReimbursement(
       return { ok: false, code: mapSupabaseError(error) };
     }
 
+    notifyProjectRecipients(supabase, parsed.data.projectId, {
+      title: "Reimbursement Approved",
+      summary: `${request.requesterName}'s request was approved`,
+      amountText: `${parsed.data.approvedAmount.toFixed(2)} THB`,
+    }).catch(() => {
+      // swallow — a notification failure must never affect the approval itself
+    });
+
     revalidatePath("/reimbursement");
     revalidatePath("/budget");
     revalidatePath("/expense");
@@ -186,6 +195,23 @@ export async function markReimbursementStatus(
 
     if (error) {
       return { ok: false, code: mapSupabaseError(error) };
+    }
+
+    if (status === "paid") {
+      const { data: row } = await supabase
+        .from("reimbursement_requests")
+        .select("project_id, requester_name, approved_amount, requested_amount")
+        .eq("id", requestId)
+        .single();
+      if (row) {
+        notifyProjectRecipients(supabase, row.project_id as string, {
+          title: "Payment Completed",
+          summary: `Payment to ${row.requester_name} has been completed`,
+          amountText: `${Number(row.approved_amount ?? row.requested_amount).toFixed(2)} THB`,
+        }).catch(() => {
+          // swallow — non-blocking, per the notification design
+        });
+      }
     }
 
     revalidatePath("/reimbursement");

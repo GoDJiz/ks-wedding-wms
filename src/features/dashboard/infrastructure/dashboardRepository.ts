@@ -3,6 +3,7 @@ import type {
   DashboardSummary,
   CategoryBreakdownItem,
   MonthlyTrendItem,
+  TodaySummary,
 } from "../domain/DashboardSummary";
 
 export async function computeDashboardSummary(
@@ -101,5 +102,50 @@ export async function computeDashboardSummary(
     profitLoss: income - spent,
     categoryBreakdown,
     monthlyTrend,
+  };
+}
+
+export async function computeTodaySummary(
+  supabase: SupabaseClient,
+  projectId: string
+): Promise<TodaySummary> {
+  const today = new Date().toISOString().slice(0, 10);
+  const todayStart = `${today}T00:00:00.000Z`;
+
+  const [expensesRes, incomesRes, requestsRes, guestsRes] = await Promise.all([
+    supabase
+      .from("expenses")
+      .select("net_total")
+      .eq("project_id", projectId)
+      .eq("date", today)
+      .is("deleted_at", null),
+    supabase
+      .from("incomes")
+      .select("amount")
+      .eq("project_id", projectId)
+      .eq("date", today),
+    supabase
+      .from("reimbursement_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("project_id", projectId)
+      .gte("created_at", todayStart),
+    supabase
+      .from("guests")
+      .select("id", { count: "exact", head: true })
+      .eq("project_id", projectId)
+      .gte("created_at", todayStart),
+  ]);
+
+  return {
+    expensesToday: (expensesRes.data ?? []).reduce(
+      (s, e) => s + Number(e.net_total),
+      0
+    ),
+    incomeToday: (incomesRes.data ?? []).reduce(
+      (s, i) => s + Number(i.amount),
+      0
+    ),
+    newRequestsToday: requestsRes.count ?? 0,
+    newGuestsToday: guestsRes.count ?? 0,
   };
 }

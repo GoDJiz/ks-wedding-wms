@@ -9,6 +9,13 @@ export type MonthlyTrendItem = {
   income: number;
 };
 
+export type TodaySummary = {
+  expensesToday: number;
+  incomeToday: number;
+  newRequestsToday: number;
+  newGuestsToday: number;
+};
+
 export type DashboardSummary = {
   totalBudget: number;
   spent: number;

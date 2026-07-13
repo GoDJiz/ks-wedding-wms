@@ -11,6 +11,7 @@ import {
   addRecipient,
   removeRecipient,
   sendTestNotification,
+  sendPaymentRemindersNow,
 } from "../application/notificationActions";
 
 export function NotificationRecipientsManager({
@@ -74,8 +75,32 @@ export function NotificationRecipientsManager({
     });
   };
 
+  const handleSendReminders = () => {
+    setStatus(null);
+    setError(null);
+    startTransition(async () => {
+      const result = await sendPaymentRemindersNow(projectId);
+      if (result.ok) {
+        setStatus(
+          `${t.notifications.remindersSent}: ${result.data.remindedCount}`
+        );
+      } else {
+        setError(tError(result.code));
+      }
+    });
+  };
+
   return (
     <div className="space-y-4">
+      <Button
+        variant="secondary"
+        onClick={handleSendReminders}
+        disabled={isPending}
+        className="w-full"
+      >
+        🔔 {t.notifications.sendReminders}
+      </Button>
+
       <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-2">
         <div className="min-w-[160px] flex-1">
           <FormField label={t.notifications.lineUserId}>

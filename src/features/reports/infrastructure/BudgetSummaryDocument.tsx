@@ -14,8 +14,23 @@ export type BudgetReportRow = {
   remaining: number;
   isOverBudget: boolean;
 };
+
+export type BudgetReportLabels = {
+  title: string;
+  generatedLabel: string;
+  category: string;
+  budgeted: string;
+  spent: string;
+  remaining: string;
+  total: string;
+};
+
+// fontFamily: "Sarabun" throughout — registerReportFonts() must be called
+// once before rendering (see the Route Handler). Sarabun covers both Thai
+// and Latin script, so this single font works for either active language,
+// unlike the earlier Helvetica default which only rendered Latin correctly.
 const styles = StyleSheet.create({
-  page: { padding: 32, fontSize: 10 },
+  page: { padding: 32, fontSize: 10, fontFamily: "Sarabun" },
   title: { fontSize: 18, marginBottom: 4, fontWeight: 700 },
   subtitle: { fontSize: 10, marginBottom: 16, color: "#666666" },
   row: {
@@ -55,15 +70,12 @@ export function BudgetSummaryDocument({
   projectName,
   categories,
   generatedAt,
+  labels,
 }: {
   projectName: string;
-  // Note: renders in Helvetica (react-pdf's default, no font registered).
-  // Thai category/project names will not render correctly without bundling
-  // and registering a Thai-supporting font file — a known limitation,
-  // documented rather than silently shipped as "full Thai report support."
-  // English numbers/labels render correctly regardless.
   categories: BudgetReportRow[];
   generatedAt: string;
+  labels: BudgetReportLabels;
 }) {
   const totalBudgeted = categories.reduce(
     (sum, c) => sum + c.budgetedAmount,
@@ -75,16 +87,16 @@ export function BudgetSummaryDocument({
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.title}>Budget Summary</Text>
+        <Text style={styles.title}>{labels.title}</Text>
         <Text style={styles.subtitle}>
-          {projectName} — Generated {generatedAt}
+          {projectName} — {labels.generatedLabel} {generatedAt}
         </Text>
 
         <View style={styles.headerRow}>
-          <Text style={styles.colName}>Category</Text>
-          <Text style={styles.colAmount}>Budgeted</Text>
-          <Text style={styles.colAmount}>Spent</Text>
-          <Text style={styles.colAmount}>Remaining</Text>
+          <Text style={styles.colName}>{labels.category}</Text>
+          <Text style={styles.colAmount}>{labels.budgeted}</Text>
+          <Text style={styles.colAmount}>{labels.spent}</Text>
+          <Text style={styles.colAmount}>{labels.remaining}</Text>
         </View>
 
         {categories.map((c) => (
@@ -104,7 +116,7 @@ export function BudgetSummaryDocument({
         ))}
 
         <View style={styles.totalsRow}>
-          <Text style={styles.colName}>Total</Text>
+          <Text style={styles.colName}>{labels.total}</Text>
           <Text style={styles.colAmount}>{money(totalBudgeted)}</Text>
           <Text style={styles.colAmount}>{money(totalSpent)}</Text>
           <Text style={styles.colAmount}>{money(totalRemaining)}</Text>
