@@ -4,6 +4,8 @@ import { requireSessionContext } from "@/shared/session/requireSessionContext";
 import { getDictionary, translateErrorCode } from "@/lib/i18n/getDictionary";
 import { getDashboardSummary } from "@/features/dashboard/application/dashboardActions";
 import { SummaryCards } from "@/features/dashboard/components/SummaryCards";
+import { QuickActions } from "@/features/dashboard/components/QuickActions";
+import { triggerGuestSync } from "@/features/sync/application/syncActions";
 import {
   CategoryBreakdownChart,
   MonthlyTrendChart,
@@ -18,6 +20,7 @@ export default async function DashboardPage() {
     <PageLayout title={t.dashboard.pageTitle}>
       {result.ok ? (
         <div className="space-y-4">
+          <QuickActions projectId={projectId} syncAction={triggerGuestSync} />
           <SummaryCards summary={result.data} t={t} />
           <CategoryBreakdownChart data={result.data.categoryBreakdown} />
           <MonthlyTrendChart data={result.data.monthlyTrend} />
