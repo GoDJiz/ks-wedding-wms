@@ -12,6 +12,8 @@ See `/docs` for:
 - `SEED_STRATEGY.md` — development seed data (safe, isolated, repeatable) — see `supabase/seed/dev_seed.sql`
 - `MILESTONE_2_REVIEW.md` — Definition of Done self-review for Milestone 2 (Budget & Expenses)
 - `SIGNIFICANT_FINDINGS.md` — running log of significant architectural decisions/security findings/production issues (replaces a full review doc per milestone, per the lighter-weight process from Milestone 3 onward)
+- `SYNC_STRATEGY.md` — Google Sheets guest/income sync design (safety rules, matching, per-row failure handling)
+- `E2E_SCENARIOS.md` — end-to-end regression checklist covering all major workflows through Milestone 4
 - `MILESTONE_0_CHECKLIST.md` — functional verification checklist (mirrors §7 of DEPLOYMENT.md)
 - `RESTORE.md` — backup/restore runbook
 
@@ -21,6 +23,8 @@ See `/docs` for:
 - ✅ Milestone 1 — Foundation (complete pending a real-environment performance check — see `docs/MILESTONE_1_REVIEW.md` for the full DoD self-review, including two RLS security fixes and a server-side logging bug found during review)
 - ✅ Milestone 2 — Budget & Expenses (complete pending a real-environment performance check + one real run of the seed script — see `docs/MILESTONE_2_REVIEW.md`)
 - ✅ Milestone 3 — Reimbursement (complete pending real-environment testing on the public form — see `docs/SIGNIFICANT_FINDINGS.md` for the Storage RLS security fix and other decisions from this milestone)
+- ✅ Milestone 4 — Guests, Income & Sync (complete pending a real sync run against a real published Sheet — see `docs/SYNC_STRATEGY.md`, `docs/E2E_SCENARIOS.md`, and `docs/SIGNIFICANT_FINDINGS.md`), plus Dry Run mode and sync metadata display added afterward
+- ✅ Milestone 5 — LINE Notifications, Reports, Analytics, Dashboard Quick Actions (complete pending a real LINE channel + a real published Sheet to test against — see `docs/SIGNIFICANT_FINDINGS.md`)
 
 ## Local development
 

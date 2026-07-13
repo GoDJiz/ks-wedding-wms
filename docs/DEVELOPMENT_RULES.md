@@ -34,6 +34,8 @@ src/
     lib/                        generic helpers (formatting, error codes, mapSupabaseError)
     session/                    cross-cutting auth: requireSessionContext, signOut, clientAuth
     logging/                    logError (client) / logErrorServer (server) — see §10
+    notifications/              LINE client + notifyProjectRecipients — cross-cutting like logging,
+                                 called from multiple features' application layers
     i18n/                       dictionaries + LanguageProvider + getDictionary
     hooks/                      cross-feature hooks (useDebounce, useMediaQuery)
 
