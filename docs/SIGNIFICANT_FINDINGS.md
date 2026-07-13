@@ -158,3 +158,47 @@ should never prevent someone from submitting a reimbursement request.
 small, targeted query (this one category's budget vs. spent) rather than
 recomputing the full dashboard aggregation — cheap enough to run on every
 expense creation without adding noticeable latency.
+
+## Pre-v1.0 — Release Candidate Hardening
+
+**Real bug found and fixed: Thai PDF font.** Bundled Sarabun (OFL license)
+for the Budget Summary PDF. Initial implementation used the font's `.woff2`
+variant, which passed a quick smoke test (one short string) but threw
+`RangeError: Offset is outside the bounds of the DataView` inside
+`fontkit`'s glyph subsetting once a real report (14 category names, mixed
+Thai/English) was rendered — a bug that a shallow test would have missed
+entirely. Found by deliberately stress-testing with realistic content
+before considering the feature done, not by trusting the first successful
+render. Switched to the same font's `.woff` variant, re-verified at full
+scale (text extraction + visual render inspection), confirmed correct.
+
+**Second issue caught before it shipped as a deployment bug:** the font
+files were initially placed under `src/assets/`, read via a runtime
+`fs`-style path. That works identically to `public/` in local dev, but
+Vercel's serverless function file-tracing isn't guaranteed to include
+arbitrary `src/` files referenced only through a computed runtime path
+(vs. a static `import`) — it reliably includes everything under `public/`,
+however. Moved before this became a "works locally, 500s in production"
+surprise. Caught by reasoning through the deployment model, not by a local
+test, since both paths behave identically in dev.
+
+**Scope decision, stated plainly:** "Upcoming payment reminders" has no
+real due-date concept to key off yet — Vendor Installments (which would
+have real due dates) are Milestone 6 scope, not built. Implemented instead
+as a reminder for reimbursements that were Approved but have sat unpaid
+past a threshold — the closest honest analog available in the current
+schema, documented as a placeholder to revisit rather than silently
+presented as a full "payment due date" feature.
+
+**Housekeeping:** found and removed 11 stray empty directories across the
+`features/` tree, literally named `{domain,application,infrastructure,components}`
+— leftover artifacts from `mkdir -p path/{a,b,c,d}` brace-expansion not
+working the way it does in bash, in whatever shell context those specific
+commands ran in during earlier milestones. Harmless (every real file was
+always created via explicit correct paths), but worth a mention since it's
+the kind of small drift that's easy to leave unnoticed indefinitely.
+
+`docs/RC1_CHECKLIST.md` is the full gate for `v1.0` — see that document
+for the complete module-by-module status and the honest list of what
+still needs a real deployed environment to fully prove, rather than
+duplicating that list here.
