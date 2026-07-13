@@ -34,7 +34,8 @@
     "activityFeed": "กิจกรรมล่าสุด",
     "notifications": "การแจ้งเตือน",
     "reports": "รายงาน",
-    "analytics": "การวิเคราะห์"
+    "analytics": "การวิเคราะห์",
+    "systemHealth": "สถานะระบบ"
   },
   "home": {
     "title": "ระบบจัดการงานแต่งงาน",
@@ -130,7 +131,12 @@
     "quickAddIncome": "เพิ่มรายรับ",
     "quickReimbursementLink": "คัดลอกลิงก์ขอเบิกเงินคืน",
     "quickSync": "ซิงค์แขกตอนนี้",
-    "linkCopied": "คัดลอกลิงก์แล้ว"
+    "linkCopied": "คัดลอกลิงก์แล้ว",
+    "todaySummary": "สรุปวันนี้",
+    "todayExpenses": "ค่าใช้จ่ายวันนี้",
+    "todayIncome": "รายรับวันนี้",
+    "todayNewRequests": "คำขอใหม่วันนี้",
+    "todayNewGuests": "แขกใหม่วันนี้"
   },
   "paymentAccounts": {
     "pageTitle": "บัญชีการเงิน",
@@ -320,13 +326,18 @@
     "testSent": "ส่งข้อความทดสอบแล้ว",
     "enabled": "เปิดใช้งาน",
     "newReimbursementTitle": "คำขอเบิกเงินคืนใหม่",
-    "budgetOverrunTitle": "งบประมาณเกิน"
+    "budgetOverrunTitle": "งบประมาณเกิน",
+    "sendReminders": "ส่งการแจ้งเตือนการชำระเงินตอนนี้",
+    "remindersSent": "ส่งการแจ้งเตือนแล้ว"
   },
   "reports": {
     "pageTitle": "รายงาน",
     "budgetSummaryPdf": "ดาวน์โหลด PDF สรุปงบประมาณ",
     "expenseExcel": "ดาวน์โหลด Excel รายการค่าใช้จ่าย",
-    "generating": "กำลังสร้างรายงาน..."
+    "generating": "กำลังสร้างรายงาน...",
+    "budgetSummaryTitle": "สรุปงบประมาณ",
+    "generatedLabel": "สร้างเมื่อ",
+    "total": "รวม"
   },
   "analytics": {
     "pageTitle": "การวิเคราะห์",
@@ -334,5 +345,12 @@
     "averageEnvelope": "ค่าเฉลี่ยซองงานแต่ง",
     "budgetHealth": "สุขภาพงบประมาณ",
     "pendingRequests": "คำขอที่รอดำเนินการ"
+  },
+  "systemHealth": {
+    "pageTitle": "สถานะระบบ",
+    "supabase": "ฐานข้อมูล (Supabase)",
+    "storage": "พื้นที่จัดเก็บไฟล์",
+    "line": "LINE",
+    "guestSync": "การซิงค์รายชื่อแขก"
   }
 }

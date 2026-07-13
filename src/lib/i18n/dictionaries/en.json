@@ -34,7 +34,8 @@
     "activityFeed": "Activity",
     "notifications": "Notifications",
     "reports": "Reports",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "systemHealth": "System Health"
   },
   "home": {
     "title": "Wedding Management System",
@@ -130,7 +131,12 @@
     "quickAddIncome": "Add Income",
     "quickReimbursementLink": "Copy Reimbursement Link",
     "quickSync": "Sync Guests Now",
-    "linkCopied": "Link copied!"
+    "linkCopied": "Link copied!",
+    "todaySummary": "Today's Summary",
+    "todayExpenses": "Expenses Today",
+    "todayIncome": "Income Today",
+    "todayNewRequests": "New Requests",
+    "todayNewGuests": "New Guests"
   },
   "paymentAccounts": {
     "pageTitle": "Payment Accounts",
@@ -320,13 +326,18 @@
     "testSent": "Test message sent",
     "enabled": "Enabled",
     "newReimbursementTitle": "New Reimbursement Request",
-    "budgetOverrunTitle": "Budget Overrun"
+    "budgetOverrunTitle": "Budget Overrun",
+    "sendReminders": "Send Payment Reminders Now",
+    "remindersSent": "Reminders sent"
   },
   "reports": {
     "pageTitle": "Reports",
     "budgetSummaryPdf": "Download Budget Summary PDF",
     "expenseExcel": "Download Expense List Excel",
-    "generating": "Generating report..."
+    "generating": "Generating report...",
+    "budgetSummaryTitle": "Budget Summary",
+    "generatedLabel": "Generated",
+    "total": "Total"
   },
   "analytics": {
     "pageTitle": "Analytics",
@@ -334,5 +345,12 @@
     "averageEnvelope": "Average Envelope",
     "budgetHealth": "Budget Health",
     "pendingRequests": "Pending Requests"
+  },
+  "systemHealth": {
+    "pageTitle": "System Health",
+    "supabase": "Database (Supabase)",
+    "storage": "File Storage",
+    "line": "LINE",
+    "guestSync": "Guest Sync"
   }
 }
