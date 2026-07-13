@@ -7,6 +7,7 @@ import { logErrorServer } from "@/shared/logging/logErrorServer";
 import type { ActionResult } from "@/shared/lib/actionResult";
 import { mapSupabaseError } from "@/shared/lib/mapSupabaseError";
 import type { SyncSettings, SyncRunSummary } from "../domain/SyncRun";
+import type { PreviewItem } from "../infrastructure/csvGuestSync";
 import { runGuestSync } from "../infrastructure/csvGuestSync";
 import {
   getSyncSettingsRow,
@@ -16,6 +17,8 @@ import {
   setAllowOverwriteFlag,
   insertSyncRun,
   listSyncRuns,
+  getSyncMetadata,
+  type SyncMetadata,
 } from "../infrastructure/syncRepository";
 
 export async function getSyncSettings(
@@ -103,8 +106,9 @@ export async function setAllowOverwrite(
 }
 
 export async function triggerGuestSync(
-  projectId: string
-): Promise<ActionResult<SyncRunSummary>> {
+  projectId: string,
+  dryRun = false
+): Promise<ActionResult<SyncRunSummary & { preview: PreviewItem[] }>> {
   try {
     const { user } = await requireSessionContext();
     const supabase = await createSupabaseServerClient();
@@ -114,18 +118,63 @@ export async function triggerGuestSync(
       return { ok: false, code: "no_csv_url" };
     }
 
-    const result = await runGuestSync(supabase, projectId, settings.csvUrl);
-    const run = await insertSyncRun(supabase, projectId, user.id, result);
+    const result = await runGuestSync(
+      supabase,
+      projectId,
+      settings.csvUrl,
+      dryRun
+    );
 
+    // A dry run previews what would happen — it isn't a real synchronization,
+    // so it doesn't get a permanent sync_runs log entry (run history means
+    // "things that actually happened"; keeps this addition lightweight
+    // rather than threading a "was this a dry run" flag through the UI).
+    if (dryRun) {
+      return {
+        ok: true,
+        data: {
+          id: "dry-run",
+          status: result.status,
+          rowsProcessed: result.rowsProcessed,
+          rowsInserted: result.rowsInserted,
+          rowsUpdated: result.rowsUpdated,
+          rowsSkipped: result.rowsSkipped,
+          rowsFailed: result.rowsFailed,
+          errorLog: result.errorLog,
+          startedAt: new Date().toISOString(),
+          finishedAt: new Date().toISOString(),
+          preview: result.preview,
+        },
+      };
+    }
+
+    const run = await insertSyncRun(supabase, projectId, user.id, result);
     if (!run) return { ok: false, code: "unknown_error" };
 
     revalidatePath("/settings/integrations");
     revalidatePath("/guests");
     revalidatePath("/income");
-    return { ok: true, data: run };
+    return { ok: true, data: { ...run, preview: result.preview } };
   } catch (err) {
     await logErrorServer({
       module: "features/sync/triggerGuestSync",
+      errorMessage: err instanceof Error ? err.message : "Unknown error",
+      projectId,
+    });
+    return { ok: false, code: "unknown_error" };
+  }
+}
+
+export async function getSyncMetadataAction(
+  projectId: string
+): Promise<ActionResult<SyncMetadata>> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const metadata = await getSyncMetadata(supabase, projectId);
+    return { ok: true, data: metadata };
+  } catch (err) {
+    await logErrorServer({
+      module: "features/sync/getSyncMetadataAction",
       errorMessage: err instanceof Error ? err.message : "Unknown error",
       projectId,
     });

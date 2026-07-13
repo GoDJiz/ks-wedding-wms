@@ -7,6 +7,8 @@ import { FormField } from "@/shared/ui/FormField";
 import { TextInput } from "@/shared/ui/TextInput";
 import { EmptyState, InlineError } from "@/shared/ui/StateViews";
 import type { SyncSettings, SyncRunSummary } from "../domain/SyncRun";
+import type { SyncMetadata } from "../infrastructure/syncRepository";
+import type { PreviewItem } from "../infrastructure/csvGuestSync";
 import {
   updateCsvUrl,
   updateFieldMapping,
@@ -18,10 +20,12 @@ export function SyncSettingsPanel({
   projectId,
   initialSettings,
   initialRuns,
+  initialMetadata,
 }: {
   projectId: string;
   initialSettings: SyncSettings;
   initialRuns: SyncRunSummary[];
+  initialMetadata: SyncMetadata;
 }) {
   const { t, tError } = useLanguage();
   const [csvUrl, setCsvUrl] = useState(initialSettings.csvUrl ?? "");
@@ -30,7 +34,11 @@ export function SyncSettingsPanel({
     initialSettings.allowOverwriteManual
   );
   const [runs, setRuns] = useState(initialRuns);
-  const [lastSummary, setLastSummary] = useState<SyncRunSummary | null>(null);
+  const [metadata, setMetadata] = useState(initialMetadata);
+  const [lastSummary, setLastSummary] = useState<
+    (SyncRunSummary & { preview: PreviewItem[] }) | null
+  >(null);
+  const [isDryRunResult, setIsDryRunResult] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -40,13 +48,26 @@ export function SyncSettingsPanel({
       partial: t.sync.statusPartial,
       failed: t.sync.statusFailed,
     })[s];
-
   const statusColor = (s: SyncRunSummary["status"]) =>
     ({
       success: "bg-emerald-100 text-emerald-700",
       partial: "bg-amber-100 text-amber-700",
       failed: "bg-rose-100 text-rose-700",
     })[s];
+  const actionLabel = (a: PreviewItem["action"]) =>
+    ({
+      insert: t.sync.actionInsert,
+      update: t.sync.actionUpdate,
+      skip: t.sync.actionSkip,
+      fail: t.sync.actionFail,
+    })[a];
+  const actionColor = (a: PreviewItem["action"]) =>
+    ({
+      insert: "text-emerald-600",
+      update: "text-sky-600",
+      skip: "text-amber-600",
+      fail: "text-rose-600",
+    })[a];
 
   const handleSaveCsvUrl = () => {
     setError(null);
@@ -80,14 +101,27 @@ export function SyncSettingsPanel({
     });
   };
 
-  const handleSyncNow = () => {
+  const runSync = (dryRun: boolean) => {
     setError(null);
     setLastSummary(null);
+    setIsDryRunResult(dryRun);
     startTransition(async () => {
-      const result = await triggerGuestSync(projectId);
+      const result = await triggerGuestSync(projectId, dryRun);
       if (result.ok) {
         setLastSummary(result.data);
-        setRuns((prev) => [result.data, ...prev].slice(0, 10));
+        if (!dryRun) {
+          setRuns((prev) => [result.data, ...prev].slice(0, 10));
+          setMetadata((prev) => ({
+            lastSuccessfulSync:
+              result.data.status !== "failed"
+                ? result.data.startedAt
+                : prev.lastSuccessfulSync,
+            lastAttemptedSync: result.data.startedAt,
+            totalRowsProcessed:
+              prev.totalRowsProcessed + result.data.rowsProcessed,
+            currentCsvHash: prev.currentCsvHash,
+          }));
+        }
       } else {
         setError(tError(result.code));
       }
@@ -96,6 +130,32 @@ export function SyncSettingsPanel({
 
   return (
     <div className="space-y-6">
+      <div className="rounded-2xl bg-white/70 p-4">
+        <p className="mb-2 text-sm font-medium text-slate-600">
+          {t.sync.metadataTitle}
+        </p>
+        <div className="grid grid-cols-1 gap-2 text-xs text-slate-600 sm:grid-cols-2">
+          <span>
+            {t.sync.lastSuccessfulSync}:{" "}
+            {metadata.lastSuccessfulSync
+              ? new Date(metadata.lastSuccessfulSync).toLocaleString()
+              : t.sync.never}
+          </span>
+          <span>
+            {t.sync.lastAttemptedSync}:{" "}
+            {metadata.lastAttemptedSync
+              ? new Date(metadata.lastAttemptedSync).toLocaleString()
+              : t.sync.never}
+          </span>
+          <span>
+            {t.sync.totalRowsProcessed}: {metadata.totalRowsProcessed}
+          </span>
+          <span className="font-mono">
+            {t.sync.currentCsvVersion}: {metadata.currentCsvHash ?? "—"}
+          </span>
+        </div>
+      </div>
+
       <div className="space-y-3 rounded-2xl bg-white/70 p-4">
         <FormField label={t.sync.csvUrl}>
           <TextInput
@@ -116,19 +176,40 @@ export function SyncSettingsPanel({
           {t.sync.allowOverwrite}
         </label>
 
-        <Button onClick={handleSyncNow} disabled={isPending} className="w-full">
-          {isPending ? t.sync.syncing : t.sync.syncNow}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => runSync(true)}
+            disabled={isPending}
+            className="flex-1"
+          >
+            {isPending && isDryRunResult ? t.sync.syncing : t.sync.dryRun}
+          </Button>
+          <Button
+            onClick={() => runSync(false)}
+            disabled={isPending}
+            className="flex-1"
+          >
+            {isPending && !isDryRunResult ? t.sync.syncing : t.sync.syncNow}
+          </Button>
+        </div>
 
         {error && <InlineError message={error} />}
 
         {lastSummary && (
           <div className="rounded-2xl bg-sky-50 p-3 text-sm">
-            <span
-              className={`mb-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${statusColor(lastSummary.status)}`}
-            >
-              {statusLabel(lastSummary.status)}
-            </span>
+            <div className="mb-2 flex items-center gap-2">
+              {isDryRunResult && (
+                <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
+                  {t.sync.dryRun}
+                </span>
+              )}
+              <span
+                className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${statusColor(lastSummary.status)}`}
+              >
+                {statusLabel(lastSummary.status)}
+              </span>
+            </div>
             <div className="grid grid-cols-2 gap-1 text-xs text-slate-600 sm:grid-cols-4">
               <span>
                 {t.sync.summaryProcessed}: {lastSummary.rowsProcessed}
@@ -146,6 +227,37 @@ export function SyncSettingsPanel({
                 {t.sync.summaryFailed}: {lastSummary.rowsFailed}
               </span>
             </div>
+
+            {lastSummary.preview.length > 0 && (
+              <div className="mt-3">
+                <p className="mb-1 text-xs font-medium text-slate-600">
+                  {t.sync.dryRunPreview}
+                </p>
+                <div className="max-h-64 overflow-y-auto rounded-xl bg-white">
+                  <table className="w-full text-left text-xs">
+                    <tbody>
+                      {lastSummary.preview.map((p, idx) => (
+                        <tr
+                          key={idx}
+                          className="border-b border-sky-50 last:border-none"
+                        >
+                          <td className="px-2 py-1 text-slate-400">#{p.row}</td>
+                          <td className="px-2 py-1 text-slate-700">{p.name}</td>
+                          <td
+                            className={`px-2 py-1 font-medium ${actionColor(p.action)}`}
+                          >
+                            {actionLabel(p.action)}
+                          </td>
+                          <td className="px-2 py-1 text-slate-400">
+                            {p.reason ?? ""}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

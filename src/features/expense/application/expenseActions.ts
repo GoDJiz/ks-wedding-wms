@@ -9,6 +9,7 @@ import { mapSupabaseError } from "@/shared/lib/mapSupabaseError";
 import type { Expense } from "../domain/Expense";
 import type { SelectOption } from "@/shared/lib/SelectOption";
 import { createExpenseSchema, type CreateExpenseInput } from "../expense.types";
+import { notifyProjectRecipients } from "@/shared/notifications/notifyRecipients";
 import {
   listExpenses,
   insertExpense,
@@ -99,6 +100,18 @@ export async function createExpense(
       return { ok: false, code: mapSupabaseError(error ?? "") };
     }
 
+    // Budget-overrun check — non-blocking, per Functional Requirements'
+    // notification list. Simple targeted query (this category's budget vs
+    // total spent), not a full dashboard aggregation — keeps this check
+    // cheap on every expense creation rather than recomputing everything.
+    checkBudgetOverrunAndNotify(
+      supabase,
+      parsed.data.projectId,
+      parsed.data.categoryId
+    ).catch(() => {
+      // swallow — a notification failure must never affect expense creation
+    });
+
     revalidatePath("/expense");
     revalidatePath("/budget");
     return { ok: true, data: { expenseId } };
@@ -137,5 +150,46 @@ export async function attachExpenseReceipt(
       errorMessage: err instanceof Error ? err.message : "Unknown error",
     });
     return { ok: false, code: "unknown_error" };
+  }
+}
+
+async function checkBudgetOverrunAndNotify(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  projectId: string,
+  categoryId: string
+): Promise<void> {
+  const [budgetRes, categoryRes, spentRes] = await Promise.all([
+    supabase
+      .from("budgets")
+      .select("budgeted_amount")
+      .eq("project_id", projectId)
+      .eq("category_id", categoryId)
+      .maybeSingle(),
+    supabase
+      .from("budget_categories")
+      .select("name")
+      .eq("id", categoryId)
+      .maybeSingle(),
+    supabase
+      .from("expenses")
+      .select("net_total")
+      .eq("project_id", projectId)
+      .eq("category_id", categoryId)
+      .is("deleted_at", null),
+  ]);
+
+  const budgeted = Number(budgetRes.data?.budgeted_amount ?? 0);
+  const spent = (spentRes.data ?? []).reduce(
+    (sum, e) => sum + Number(e.net_total),
+    0
+  );
+
+  if (budgeted > 0 && spent > budgeted) {
+    const categoryName = (categoryRes.data?.name as string) ?? "a category";
+    await notifyProjectRecipients(supabase, projectId, {
+      title: "Budget Overrun",
+      summary: `"${categoryName}" is now over budget`,
+      amountText: `${spent.toFixed(2)} / ${budgeted.toFixed(2)} THB`,
+    });
   }
 }

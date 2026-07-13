@@ -17,6 +17,7 @@ import {
   getPublicProjectInfo,
   type PublicProjectInfo,
 } from "../infrastructure/publicProjectRepository";
+import { notifyProjectRecipients } from "@/shared/notifications/notifyRecipients";
 
 export async function getPublicProject(
   projectId: string
@@ -82,6 +83,16 @@ export async function submitReimbursement(
         projectId: parsed.data.projectId,
       });
     }
+
+    // Notify admins — non-blocking: a notification failure must never
+    // affect the requester's successful submission result.
+    notifyProjectRecipients(supabase, parsed.data.projectId, {
+      title: "New Reimbursement Request",
+      summary: `${parsed.data.requesterName} submitted a request`,
+      amountText: `${parsed.data.requestedAmount.toFixed(2)} THB`,
+    }).catch(() => {
+      // swallow — notification failures are non-critical to the requester
+    });
 
     return {
       ok: true,

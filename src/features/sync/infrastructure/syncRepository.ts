@@ -98,6 +98,7 @@ export async function insertSyncRun(
     rowsSkipped: number;
     rowsFailed: number;
     errorLog: unknown;
+    csvHash?: string | null;
   }
 ): Promise<SyncRunSummary | null> {
   const { data, error } = await supabase
@@ -112,6 +113,7 @@ export async function insertSyncRun(
       rows_skipped: result.rowsSkipped,
       rows_failed: result.rowsFailed,
       error_log: result.errorLog,
+      csv_hash: result.csvHash ?? null,
       finished_at: new Date().toISOString(),
     })
     .select(
@@ -132,6 +134,52 @@ export async function insertSyncRun(
     errorLog: data.error_log as SyncRunSummary["errorLog"],
     startedAt: data.started_at as string,
     finishedAt: data.finished_at as string | null,
+  };
+}
+
+export type SyncMetadata = {
+  lastSuccessfulSync: string | null;
+  lastAttemptedSync: string | null;
+  totalRowsProcessed: number;
+  currentCsvHash: string | null;
+};
+
+export async function getSyncMetadata(
+  supabase: SupabaseClient,
+  projectId: string
+): Promise<SyncMetadata> {
+  const [lastAnyRes, lastSuccessRes, allRunsRes] = await Promise.all([
+    supabase
+      .from("sync_runs")
+      .select("started_at, csv_hash")
+      .eq("project_id", projectId)
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("sync_runs")
+      .select("started_at")
+      .eq("project_id", projectId)
+      .in("status", ["success", "partial"])
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("sync_runs")
+      .select("rows_processed")
+      .eq("project_id", projectId),
+  ]);
+
+  const totalRowsProcessed = (allRunsRes.data ?? []).reduce(
+    (sum, r) => sum + Number(r.rows_processed),
+    0
+  );
+
+  return {
+    lastSuccessfulSync: lastSuccessRes.data?.started_at ?? null,
+    lastAttemptedSync: lastAnyRes.data?.started_at ?? null,
+    totalRowsProcessed,
+    currentCsvHash: (lastAnyRes.data?.csv_hash as string | null) ?? null,
   };
 }
 
