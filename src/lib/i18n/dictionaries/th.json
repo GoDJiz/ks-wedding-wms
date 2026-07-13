@@ -31,7 +31,10 @@
     "guests": "แขก",
     "income": "รายรับ",
     "integrations": "การเชื่อมต่อ",
-    "activityFeed": "กิจกรรมล่าสุด"
+    "activityFeed": "กิจกรรมล่าสุด",
+    "notifications": "การแจ้งเตือน",
+    "reports": "รายงาน",
+    "analytics": "การวิเคราะห์"
   },
   "home": {
     "title": "ระบบจัดการงานแต่งงาน",
@@ -120,7 +123,14 @@
     "profitLoss": "กำไร/ขาดทุน",
     "categoryBreakdown": "แยกตามหมวดหมู่",
     "monthlyTrend": "แนวโน้มรายเดือน",
-    "overBudget": "เกินงบ"
+    "overBudget": "เกินงบ",
+    "quickActions": "การดำเนินการด่วน",
+    "quickAddExpense": "เพิ่มค่าใช้จ่าย",
+    "quickAddGuest": "เพิ่มแขก",
+    "quickAddIncome": "เพิ่มรายรับ",
+    "quickReimbursementLink": "คัดลอกลิงก์ขอเบิกเงินคืน",
+    "quickSync": "ซิงค์แขกตอนนี้",
+    "linkCopied": "คัดลอกลิงก์แล้ว"
   },
   "paymentAccounts": {
     "pageTitle": "บัญชีการเงิน",
@@ -282,10 +292,47 @@
     "statusSuccess": "สำเร็จ",
     "statusPartial": "สำเร็จบางส่วน",
     "statusFailed": "ล้มเหลว",
-    "noCsvUrl": "กรุณาระบุลิงก์ CSV ก่อนซิงค์"
+    "noCsvUrl": "กรุณาระบุลิงก์ CSV ก่อนซิงค์",
+    "dryRun": "ทดลองซิงค์ (ดูตัวอย่าง)",
+    "dryRunPreview": "ตัวอย่างผลลัพธ์",
+    "actionInsert": "เพิ่มใหม่",
+    "actionUpdate": "อัปเดต",
+    "actionSkip": "ข้าม",
+    "actionFail": "ล้มเหลว",
+    "metadataTitle": "ข้อมูลการซิงค์ล่าสุด",
+    "lastSuccessfulSync": "ซิงค์สำเร็จล่าสุด",
+    "lastAttemptedSync": "พยายามซิงค์ล่าสุด",
+    "totalRowsProcessed": "จำนวนแถวที่ประมวลผลทั้งหมด",
+    "currentCsvVersion": "เวอร์ชันไฟล์ CSV ปัจจุบัน",
+    "never": "ยังไม่เคย"
   },
   "activity": {
     "pageTitle": "กิจกรรมล่าสุด",
     "noActivity": "ยังไม่มีกิจกรรม"
+  },
+  "notifications": {
+    "pageTitle": "การแจ้งเตือน LINE",
+    "lineUserId": "LINE User ID",
+    "label": "ป้ายชื่อ",
+    "add": "เพิ่มผู้รับแจ้งเตือน",
+    "noRecipients": "ยังไม่มีผู้รับการแจ้งเตือน",
+    "test": "ส่งข้อความทดสอบ",
+    "testSent": "ส่งข้อความทดสอบแล้ว",
+    "enabled": "เปิดใช้งาน",
+    "newReimbursementTitle": "คำขอเบิกเงินคืนใหม่",
+    "budgetOverrunTitle": "งบประมาณเกิน"
+  },
+  "reports": {
+    "pageTitle": "รายงาน",
+    "budgetSummaryPdf": "ดาวน์โหลด PDF สรุปงบประมาณ",
+    "expenseExcel": "ดาวน์โหลด Excel รายการค่าใช้จ่าย",
+    "generating": "กำลังสร้างรายงาน..."
+  },
+  "analytics": {
+    "pageTitle": "การวิเคราะห์",
+    "costPerGuest": "ค่าใช้จ่ายต่อแขก",
+    "averageEnvelope": "ค่าเฉลี่ยซองงานแต่ง",
+    "budgetHealth": "สุขภาพงบประมาณ",
+    "pendingRequests": "คำขอที่รอดำเนินการ"
   }
 }

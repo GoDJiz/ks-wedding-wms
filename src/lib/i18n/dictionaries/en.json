@@ -31,7 +31,10 @@
     "guests": "Guests",
     "income": "Income",
     "integrations": "Integrations",
-    "activityFeed": "Activity"
+    "activityFeed": "Activity",
+    "notifications": "Notifications",
+    "reports": "Reports",
+    "analytics": "Analytics"
   },
   "home": {
     "title": "Wedding Management System",
@@ -120,7 +123,14 @@
     "profitLoss": "Profit / Loss",
     "categoryBreakdown": "Category Breakdown",
     "monthlyTrend": "Monthly Trend",
-    "overBudget": "Over Budget"
+    "overBudget": "Over Budget",
+    "quickActions": "Quick Actions",
+    "quickAddExpense": "Add Expense",
+    "quickAddGuest": "Add Guest",
+    "quickAddIncome": "Add Income",
+    "quickReimbursementLink": "Copy Reimbursement Link",
+    "quickSync": "Sync Guests Now",
+    "linkCopied": "Link copied!"
   },
   "paymentAccounts": {
     "pageTitle": "Payment Accounts",
@@ -282,10 +292,47 @@
     "statusSuccess": "Success",
     "statusPartial": "Partial",
     "statusFailed": "Failed",
-    "noCsvUrl": "Enter a CSV URL before syncing."
+    "noCsvUrl": "Enter a CSV URL before syncing.",
+    "dryRun": "Dry Run (Preview)",
+    "dryRunPreview": "Preview Results",
+    "actionInsert": "Insert",
+    "actionUpdate": "Update",
+    "actionSkip": "Skip",
+    "actionFail": "Fail",
+    "metadataTitle": "Sync Metadata",
+    "lastSuccessfulSync": "Last successful sync",
+    "lastAttemptedSync": "Last attempted sync",
+    "totalRowsProcessed": "Total rows processed",
+    "currentCsvVersion": "Current CSV version",
+    "never": "Never"
   },
   "activity": {
     "pageTitle": "Activity",
     "noActivity": "No activity yet."
+  },
+  "notifications": {
+    "pageTitle": "LINE Notifications",
+    "lineUserId": "LINE User ID",
+    "label": "Label",
+    "add": "Add recipient",
+    "noRecipients": "No notification recipients yet.",
+    "test": "Send test message",
+    "testSent": "Test message sent",
+    "enabled": "Enabled",
+    "newReimbursementTitle": "New Reimbursement Request",
+    "budgetOverrunTitle": "Budget Overrun"
+  },
+  "reports": {
+    "pageTitle": "Reports",
+    "budgetSummaryPdf": "Download Budget Summary PDF",
+    "expenseExcel": "Download Expense List Excel",
+    "generating": "Generating report..."
+  },
+  "analytics": {
+    "pageTitle": "Analytics",
+    "costPerGuest": "Cost per Guest",
+    "averageEnvelope": "Average Envelope",
+    "budgetHealth": "Budget Health",
+    "pendingRequests": "Pending Requests"
   }
 }
