@@ -27,6 +27,15 @@ See `/docs` for:
 - ✅ Milestone 4 — Guests, Income & Sync (complete pending a real sync run against a real published Sheet — see `docs/SYNC_STRATEGY.md`, `docs/E2E_SCENARIOS.md`, and `docs/SIGNIFICANT_FINDINGS.md`), plus Dry Run mode and sync metadata display added afterward
 - ✅ Milestone 5 — LINE Notifications, Reports, Analytics, Dashboard Quick Actions (complete pending a real LINE channel + a real published Sheet to test against — see `docs/SIGNIFICANT_FINDINGS.md`)
 - 🚧 Release Candidate 1 — code-complete (Thai PDF font, 3 more LINE triggers, Today's Summary, System Health) — see `docs/RC1_CHECKLIST.md` for the full v1.0 gate and honest open items requiring real deployed access
+- 🚧 Production Support Pass — security/performance hardening (migrations 0009-0010), fixed a real deployment-doc bug (`DEPLOYMENT.md`/`.env.example`/Apps Script all described the pre-Milestone-4 architecture), added an automated test suite — see `docs/SIGNIFICANT_FINDINGS.md`
+
+## Testing
+
+```bash
+npm run test   # Vitest — pure/critical logic (CSV parsing, sync matching, currency, error mapping)
+```
+
+Runs automatically in the pre-commit hook alongside lint-staged. This covers business-logic correctness for the highest-risk pure functions; integration/E2E behavior is covered by `docs/E2E_SCENARIOS.md`'s manual regression checklist (see that doc for why full OAuth automation wasn't built).
 
 ## Local development
 
