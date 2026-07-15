@@ -202,3 +202,83 @@ the kind of small drift that's easy to leave unnoticed indefinitely.
 for the complete module-by-module status and the honest list of what
 still needs a real deployed environment to fully prove, rather than
 duplicating that list here.
+
+## Pre-v1.0 — Production Support Pass (QA/DevOps/Production Support role)
+
+**Real security fixes (migration 0009):**
+
+1. `reimbursement_files` had `with check (true)` on its public insert
+   policy — completely unconditional. Anyone could attach a file record to
+   **any** `reimbursement_id`, including other people's already-reviewed/
+   approved/paid requests, with no relation to ever having uploaded
+   anything. Tightened to only allow attaching to a request that still
+   exists and is still `submitted` (matching "requester cannot edit after
+   submission" already true elsewhere).
+2. The public reimbursement insert policy validated `status = 'submitted'`
+   but didn't restrict which _other_ columns a direct-API caller could
+   set — `approved_amount`, `reviewed_by`, `reject_reason`,
+   `partial_approval_reason`, `expense_id` could all be pre-populated on a
+   fresh "submitted" row. Can't move money (only the approve Server Action
+   creates an Expense, independently), but would show misleading data to
+   admins. Closed by requiring all of those to be null on insert.
+3. `notification_recipients` was readable by any project member (viewer,
+   organizer) though only owner/admin ever manage it — tightened to
+   owner/admin read access, consistent with `whitelisted_emails`.
+4. Added DB-level length/range CHECK constraints on `reimbursement_requests`
+   and `application_logs` (both have public, unauthenticated insert by
+   design) — defense-in-depth beyond the app's Zod validation, which only
+   protects callers going through the app's Server Actions, not someone
+   hitting the Supabase REST API directly with the (non-secret) anon key.
+
+**Real performance fixes:**
+
+1. The sync engine re-fetched the default payment account **inside** the
+   per-row loop for every guest with a non-zero envelope/transfer amount —
+   up to ~2 extra queries per row, ~900 extra queries on a 450-guest sync.
+   Fetched once before the loop instead.
+2. Parallelized signed-URL generation for reimbursement attachments
+   (previously sequential `await`s in a `for` loop; each file's URL is
+   independent of the others).
+3. `audit_log` and `sync_runs` were both queried as
+   `where project_id = ? order by created_at/started_at desc limit N` in
+   multiple pages, with no supporting index — added (migration 0010).
+   `audit_log` is the fastest-growing table in the schema (every write
+   across 10+ tables lands here via the audit trigger), making it the
+   most likely to actually matter over the life of the app.
+
+**Real deployment-documentation bug — the most significant finding of this
+pass:** `DEPLOYMENT.md`, `.env.example`, and `integrations/google-apps-script/sync.gs`
+all still described the Milestone 0 architecture (Apps Script _pushes_ row
+data to a Supabase Edge Function; `LINE_CHANNEL_ACCESS_TOKEN` and
+`SHEET_SYNC_SHARED_SECRET` set as _Supabase secrets_). That architecture
+was replaced back in Milestone 4 — every actual runtime usage of those two
+env vars is `process.env` inside Next.js Route Handlers/Server Actions,
+never `Deno.env` in an Edge Function. Following the old docs as written
+would have set both variables in the wrong place entirely, and LINE
+notifications + scheduled sync would have silently never worked, with no
+obvious error pointing at why. Fixed: rewrote the affected sections of all
+three files, and deleted the two now-fully-obsolete Supabase Edge Functions
+(`notify-line-test`, `sync-guests-test`) so they can't mislead a deployer
+into thinking they're still needed.
+
+**Verified, not just assumed:** `npm audit` flags `xlsx` (2 moderate + 1
+high — prototype pollution and ReDoS). Checked directly: both advisories
+affect XLSX's _parsing_ code path (`XLSX.read`/`readFile`), which this
+app never calls — `expenseExcel.ts` only calls `json_to_sheet`/`book_new`/
+`write` to build a workbook from data we already control. Not exploitable
+in this app's usage; documented here so a future `npm audit` reading
+doesn't cause unnecessary alarm or an unnecessary dependency swap.
+
+**Automated tests added** (`npm run test`, Vitest, now part of the
+pre-commit hook): 45 tests across `parseCsv`, `shortHash`, `formatCurrency`,
+`mapSupabaseError`, and the sync engine's `normalizeExternalKey`/
+`normalizeRsvp`/`parseAmount` — the pure logic most prone to subtle bugs
+and least likely to be caught by TypeScript alone (e.g., CSV quoting edge
+cases, RSVP value normalization, amount string parsing). This is real
+regression protection for the highest-risk pure logic, not a full test
+pyramid — integration/E2E behavior stays in `docs/E2E_SCENARIOS.md`'s
+manual checklist, per that document's stated reasoning.
+
+**Housekeeping:** removed the two obsolete Milestone 0 Edge Functions
+entirely (see above) rather than leaving them as unused dead code that
+could confuse a future deployer.

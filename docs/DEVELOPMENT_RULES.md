@@ -253,9 +253,16 @@ Rules:
   with zero errors before merge — warnings are acceptable but should trend to zero.
 - `no-console` (warn), `@typescript-eslint/no-explicit-any` (error) added to
   the ESLint config to enforce §11.
-- Run `npm run lint` and `npm run build` locally before every commit — both
-  must be clean (this project doesn't have CI yet; you are the CI until a
-  GitHub Actions workflow is added, which is optional/future).
+- Run `npm run lint`, `npm run build`, and `npm run test` locally before
+  every commit — all three must be clean (this project doesn't have CI
+  yet; you are the CI until a GitHub Actions workflow is added, which is
+  optional/future). `npm run test` (Vitest) covers pure/critical logic
+  (CSV parsing, sync matching/normalization, currency formatting, error
+  mapping) added during the pre-v1.0 QA pass — it is not a full test
+  pyramid, deliberately: business-logic correctness is covered here,
+  integration/E2E behavior stays in `docs/E2E_SCENARIOS.md`'s manual
+  regression checklist (see that doc for why full OAuth automation wasn't
+  built).
 
 ---
 

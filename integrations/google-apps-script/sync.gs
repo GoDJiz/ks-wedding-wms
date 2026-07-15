@@ -1,40 +1,47 @@
 /**
- * Milestone 0 spike: proves Google Apps Script can call a Supabase Edge Function.
- * Paste this into Extensions → Apps Script on the guest-list Google Sheet.
+ * Google Apps Script — optional scheduled trigger for guest sync and
+ * payment reminders. This is NOT how guest data gets into the app —
+ * that happens by the app pulling your Sheet's "Publish to web" CSV URL
+ * directly (see docs/SYNC_STRATEGY.md). This script's only job is to
+ * ping the app on a timer so sync/reminders happen automatically instead
+ * of requiring someone to click "Sync Now" manually.
  *
- * Full field-mapping-driven sync (Milestone 4) builds on this same call pattern —
- * this spike just proves the connection works with a couple of test rows.
+ * (Earlier versions of this project had Apps Script push row data to a
+ * Supabase Edge Function. That architecture was replaced — see
+ * docs/SIGNIFICANT_FINDINGS.md, Milestone 4 entry, for why. If you set
+ * this project up before that change, delete any old trigger pointing at
+ * a supabase.co/functions/v1/... URL and replace it with this script.)
+ *
+ * Setup:
+ * 1. Paste this into any Google Sheet's Extensions → Apps Script (doesn't
+ *    need to be the guest-list Sheet itself, though it can be).
+ * 2. Fill in APP_URL, PROJECT_ID, and SHARED_SECRET below.
+ * 3. Run `pingGuestSync` once manually to test (Apps Script will prompt
+ *    for authorization the first time — approve it, it's your own script).
+ * 4. Triggers (clock icon in the left sidebar) → Add Trigger → choose
+ *    the function → Time-driven → Day timer (or hourly, your choice).
  */
 
-const EDGE_FUNCTION_URL =
-  "https://YOUR_PROJECT_REF.supabase.co/functions/v1/sync-guests-test";
-const SHARED_SECRET = "PASTE_SHEET_SYNC_SHARED_SECRET_HERE"; // matches SHEET_SYNC_SHARED_SECRET env var
+const APP_URL = "https://YOUR-APP.vercel.app";
+const PROJECT_ID = "YOUR_PROJECT_ID_HERE"; // the wedding project's UUID
+const SHARED_SECRET = "PASTE_SHEET_SYNC_SHARED_SECRET_HERE"; // matches SHEET_SYNC_SHARED_SECRET in Vercel
 
-function testSyncCall() {
-  const sheet = SpreadsheetApp.getActiveSheet();
-  const range = sheet.getDataRange();
-  const values = range.getValues();
-  const headers = values[0];
-  const rows = values.slice(1, 3); // just the first two data rows, for the spike
+function pingGuestSync() {
+  callEndpoint("/api/sync/guests");
+}
 
-  const payload = {
-    secret: SHARED_SECRET,
-    headers: headers,
-    rows: rows,
-  };
+function pingPaymentReminders() {
+  callEndpoint("/api/notifications/payment-reminders");
+}
 
-  const response = UrlFetchApp.fetch(EDGE_FUNCTION_URL, {
+function callEndpoint(path) {
+  const response = UrlFetchApp.fetch(APP_URL + path, {
     method: "post",
     contentType: "application/json",
-    payload: JSON.stringify(payload),
+    payload: JSON.stringify({ projectId: PROJECT_ID, secret: SHARED_SECRET }),
     muteHttpExceptions: true,
   });
 
   Logger.log("Status: %s", response.getResponseCode());
   Logger.log("Body: %s", response.getContentText());
 }
-
-/**
- * Optional: run testSyncCall() on a time-based trigger for the real
- * Milestone 4 sync (Triggers → Add Trigger → Time-driven → every 15-30 min).
- */

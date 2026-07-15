@@ -131,9 +131,9 @@ Prerequisite: `docs/DEPLOYMENT.md` fully completed, `v0.0` already tagged.
 
 ## 11. File Upload Limits
 
-- [ ] On `/dev/storage-test` (or wherever the receipts bucket is exercised),
-      upload a normal JPG/PNG under 10MB → succeeds, signed URL opens and
-      displays the image.
+- [ ] On `/expense` (Add Expense → attach receipt), upload a normal JPG/PNG
+      under 10MB → succeeds, expense saves with the receipt attached in
+      the `receipts` bucket.
 - [ ] Attempt a file over 10MB → client-side rejection message shown,
       **and** confirm no partial/orphaned file landed in the `receipts`
       bucket (check Supabase Storage directly).

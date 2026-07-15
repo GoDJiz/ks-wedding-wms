@@ -1,5 +1,12 @@
 # Milestone 0 — Architecture Validation Checklist
 
+> **Historical document.** Milestone 0 was completed and signed off long
+> ago; the `/dev/i18n-test` and `/dev/storage-test` spike pages this
+> checklist refers to were deleted in Milestone 3 as planned (see the note
+> at the bottom of this file). Kept here as a historical record of what was
+> validated, not as an actionable checklist — for current deployment
+> verification, use `docs/DEPLOYMENT.md` §7 and `docs/PRODUCTION_VALIDATION.md`.
+
 Work through `docs/SETUP.md` first, then verify each item below. Tag `v0.0` once all are checked.
 
 - [ ] Vercel deploy pipeline works from a GitHub push

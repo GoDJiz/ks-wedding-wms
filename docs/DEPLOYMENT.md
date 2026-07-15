@@ -62,17 +62,33 @@ Paste all three into your local `.env.local` (copy from `.env.example` first).
 
 ### 2.3 SQL Migration Execution Order
 
-Milestone 0 has exactly **one** migration file. Run it in the SQL Editor
-(Dashboard → SQL Editor → New query), paste the full contents, and run:
+Run each file in the SQL Editor (Dashboard → SQL Editor → New query), in
+this exact order — each depends on functions/tables created by the ones
+before it:
 
-1. `supabase/migrations/0001_milestone0_foundation.sql`
+1. `supabase/migrations/0001_milestone0_foundation.sql` — core tables, RLS helpers, whitelist auth hook
+2. `supabase/migrations/0002_permissions.sql` — permission matrix
+3. `supabase/migrations/0003_audit_log.sql` — audit log + trigger function
+4. `supabase/migrations/0004_budget_and_expense.sql` — budget/expense/payment accounts/vendors/guests/incomes schema
+5. `supabase/migrations/0005_reimbursement.sql` — reimbursement schema + Storage RLS policies (also fixes a Storage RLS gap from M0)
+6. `supabase/migrations/0006_guest_income_sync.sql` — sync config/mapping/run-log tables
+7. `supabase/migrations/0007_sync_dry_run_and_metadata.sql` — one column (`sync_runs.csv_hash`)
+8. `supabase/migrations/0008_notifications.sql` — LINE notification recipients
+9. `supabase/migrations/0009_security_hardening.sql` — pre-v1.0 RLS/constraint hardening (see `docs/SIGNIFICANT_FINDINGS.md`)
+10. `supabase/migrations/0010_performance_indexes.sql` — missing indexes on `audit_log`/`sync_runs` found during the pre-v1.0 performance review
 
-- [ ] Migration `0001` executed with no errors.
-- [ ] Confirm tables exist: Dashboard → Table Editor should show `projects`,
-      `project_members`, `whitelisted_emails`, `feature_flags`, `application_logs`.
+- [ ] All 10 migrations executed with no errors, in order.
+- [ ] Confirm tables exist: Dashboard → Table Editor should show at least
+      `projects`, `project_members`, `whitelisted_emails`, `feature_flags`,
+      `application_logs`, `permissions`, `audit_log`, `budget_categories`,
+      `budgets`, `payment_accounts`, `vendors`, `expenses`, `expense_files`,
+      `guests`, `incomes`, `reimbursement_requests`, `reimbursement_files`,
+      `sync_configs`, `sync_field_mappings`, `sync_runs`,
+      `notification_recipients`.
 
-_(Future milestones add `0002_...sql`, `0003_...sql`, etc. — always run new
-migration files in ascending numeric order, never skip ahead.)_
+_(Future migrations add `0010_...sql`, etc. — always run new migration
+files in ascending numeric order, never skip ahead, never edit an already-
+applied migration — see `DEVELOPMENT_RULES.md` §7.)_
 
 ### 2.4 Required Authentication Settings
 
@@ -127,10 +143,17 @@ Dashboard → **Storage → New bucket**. Create these (Milestone 0 only needs
 - [ ] `project-assets` set to **public**.
 - [ ] For each private bucket, set the file size limit to 10 MB (bucket
       settings → "File size limit").
+- [ ] **Recommended hardening** (found during the pre-v1.0 security
+      review): set "Allowed MIME types" on each private bucket to
+      `image/jpeg, image/png, image/heic, application/pdf` — RLS policies
+      can't restrict file content type, only who can read/write, so this
+      is the only real server-side enforcement of "only images/PDFs,"
+      backing up the client-side check already in the upload forms.
 
-_(RLS policies on Storage objects are added in Milestone 1/2 alongside the
-Expense/Reimbursement schema — Milestone 0 only needs the buckets to exist so
-the storage spike page can upload to `receipts`.)_
+_(RLS policies on Storage objects are defined in migration `0005`, run in
+§2.3 above — this section just needs the buckets to exist with the right
+names/visibility/size limit before that migration's policies can apply to
+anything.)_
 
 ---
 
@@ -179,18 +202,21 @@ redirect back to your app's `/auth/callback` internally afterward.
 Project Settings → Environment Variables → add for **Production, Preview, and
 Development** (all three, so preview deploys also work):
 
-| Key                             | Value source |
-| ------------------------------- | ------------ |
-| `NEXT_PUBLIC_SUPABASE_URL`      | §2.2         |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | §2.2         |
-| `SUPABASE_SERVICE_ROLE_KEY`     | §2.2         |
+| Key                             | Value source                                     |
+| ------------------------------- | ------------------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`      | §2.2                                             |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | §2.2                                             |
+| `SUPABASE_SERVICE_ROLE_KEY`     | §2.2                                             |
+| `LINE_CHANNEL_ACCESS_TOKEN`     | §5 below                                         |
+| `SHEET_SYNC_SHARED_SECRET`      | §6 below (a random string you generate yourself) |
 
-Note: `LINE_CHANNEL_ACCESS_TOKEN`, `LINE_TEST_USER_ID`, and
-`SHEET_SYNC_SHARED_SECRET` are **not** Vercel variables — those are Supabase
-Edge Function secrets (§6), because Edge Functions run on Supabase's
-infrastructure, not Vercel's.
+All five are Vercel/Next.js environment variables, read via `process.env`
+by Route Handlers and Server Actions. This app has no Supabase Edge
+Functions in active use — an earlier iteration did, and if you're
+following older notes that say to use `supabase secrets set` for the LINE
+token or shared secret, that's now incorrect; set them here instead.
 
-- [ ] All three variables added, each scoped to all three environments.
+- [ ] All five variables added, each scoped to all three environments.
 
 ### 4.3 Deploy
 
@@ -217,81 +243,103 @@ Now that you have the real Vercel URL:
 - [ ] OA Manager → Settings → Messaging API → **Enable Messaging API**.
 - [ ] Issue a **Channel Access Token (long-lived)** — this is
       `LINE_CHANNEL_ACCESS_TOKEN`.
-- [ ] On your own phone, add the OA as a friend (scan the QR code shown in OA Manager).
-- [ ] Find your own `userId`: easiest way — temporarily enable the webhook
-      URL to point at a request-bin style tool, send the OA a message, read
-      your `userId` from the payload; or use the LINE Official Account's
-      "target ID" shown for the account owner in some LINE developer tools.
-      This value is `LINE_TEST_USER_ID`.
+- [ ] Set it as a **Vercel environment variable** (§4.2) — not a Supabase
+      secret, not `.env.local` in production. Redeploy after adding it
+      (Vercel env var changes need a redeploy to take effect).
 
-### Supabase Edge Function secrets (not Vercel, not `.env.local`)
+### Add recipients (who gets notified)
 
-Install the Supabase CLI if you haven't:
+This is done **in the app**, not via any env var or config file:
 
-```bash
-npm install -g supabase
-supabase login
-supabase link --project-ref <your-project-ref>
-```
+- [ ] On your phone, add the OA as a friend (scan the QR code in OA Manager).
+- [ ] Find your own LINE `userId` (LINE Developers Console → your channel
+      → Messaging API → there's usually a way to see recent user IDs after
+      you message the OA once; alternatively use any LINE userId lookup
+      method you're already comfortable with).
+- [ ] Sign in to the app → Settings → Notifications → add yourself as a
+      recipient (paste the `userId`, give it a label like "Me").
+- [ ] Click **"Send test message"** next to that recipient.
+- [ ] Confirm the test message arrives on your phone.
 
-Then set the secrets:
+### Verify via System Health
 
-```bash
-supabase secrets set LINE_CHANNEL_ACCESS_TOKEN=<your-token> LINE_TEST_USER_ID=<your-user-id>
-```
-
-- [ ] Secrets set successfully (`supabase secrets list` shows both keys, values hidden).
-
-### Deploy and test
-
-```bash
-supabase functions deploy notify-line-test
-supabase functions invoke notify-line-test
-```
-
-- [ ] LINE message received on your phone with title, summary, amount, and an "Open Detail" button.
+- [ ] Settings → System Health → confirm the **LINE** row shows ✅ (this
+      calls LINE's `bot/info` endpoint for real — a genuine connectivity
+      check, not just "is the env var present").
 
 ---
 
-## 6. Google Apps Script
+## 6. Google Sheets Sync (Guest & Income)
 
-### 6.1 Set the shared secret
+Two independent pieces: (1) the app pulling guest data FROM your Sheet,
+and (2) an optional scheduler that pings the app on a timer so that
+pulling happens automatically. Neither needs a Supabase Edge Function —
+both are handled by this Next.js app directly.
 
-- [ ] Pick any random string, e.g. generate one: `openssl rand -hex 16`.
-- [ ] Set it as an Edge Function secret:
-  ```bash
-  supabase secrets set SHEET_SYNC_SHARED_SECRET=<your-random-string>
-  ```
-- [ ] Deploy the receiving function:
-  ```bash
-  supabase functions deploy sync-guests-test
-  ```
+### 6.1 Publish your guest Sheet as CSV
 
-### 6.2 Configure the script
+- [ ] Open your guest-list Google Sheet.
+- [ ] File → Share → **Publish to web**.
+- [ ] Choose the specific sheet/tab (not "Entire Document") and select
+      **Comma-separated values (.csv)** as the format.
+- [ ] Click Publish, copy the resulting URL.
+- [ ] **Understand the trade-off**: anyone with this URL can view the raw
+      sheet contents (guest names, RSVP, contact info — not financial
+      data). Acceptable for a wedding guest list; documented in
+      `docs/SYNC_STRATEGY.md`.
 
-- [ ] Open your guest-list Google Sheet → Extensions → Apps Script.
+### 6.2 Configure the app
+
+- [ ] Sign in → Settings → Integrations.
+- [ ] Paste the published CSV URL.
+- [ ] Review the **Field Mapping** table — each row maps a Sheet column
+      header (left) to a system field (right). Adjust the left-hand values
+      to match your actual Sheet's column headers exactly (case-sensitive).
+- [ ] Click **"Dry Run (Preview)"** first — confirms what would happen
+      (insert/update/skip/fail per row) without writing anything.
+- [ ] Once the preview looks right, click **"Sync Now"** for a real run.
+- [ ] Confirm the summary counts match what you expected, and check
+      Guests/Income pages for the synced data.
+
+### 6.3 Set the shared secret (only needed for scheduled/automated sync)
+
+- [ ] Generate a random string: `openssl rand -hex 16`.
+- [ ] Set it as `SHEET_SYNC_SHARED_SECRET` in **Vercel** (§4.2), not a
+      Supabase secret. Redeploy after adding it.
+
+### 6.4 Optional: schedule automatic sync via Apps Script
+
+Manual "Sync Now" in the app is enough if you're fine triggering it
+yourself occasionally. For automatic scheduled sync:
+
+- [ ] Open any Google Sheet (doesn't need to be the guest list itself) →
+      Extensions → Apps Script.
 - [ ] Paste the contents of `integrations/google-apps-script/sync.gs`.
-- [ ] Replace `EDGE_FUNCTION_URL` with:
-      `https://<your-project-ref>.supabase.co/functions/v1/sync-guests-test`
-- [ ] Replace `SHARED_SECRET` with the same random string from §6.1.
-- [ ] Save the script.
+- [ ] Fill in `APP_URL` (your Vercel deployment URL), `PROJECT_ID` (your
+      wedding project's UUID — found in the `projects` table), and
+      `SHARED_SECRET` (same value as §6.3).
+- [ ] Run `pingGuestSync` once manually to test (approve the authorization
+      prompt — it's your own script) — check the Apps Script execution log
+      shows a `200` response.
+- [ ] (Optional) Run `pingPaymentReminders` once manually too, to test the
+      payment-reminders endpoint the same way.
+- [ ] Triggers (clock icon, left sidebar) → Add Trigger → pick a function
+      → Time-driven → choose a frequency (e.g. daily) → Save. Repeat for
+      the other function if you want both scheduled.
 
-### 6.3 Run and verify
+### 6.5 Verify via System Health
 
-- [ ] Run the `testSyncCall` function from the Apps Script editor (first run
-      will prompt for authorization — approve it, it's your own script).
-- [ ] Check logs:
-  ```bash
-  supabase functions logs sync-guests-test
-  ```
-- [ ] Confirm the log shows the headers and rows you expected, and the
-      Apps Script execution log shows a `200` status response.
+- [ ] Settings → System Health → confirm the **Guest Sync** row shows ✅
+      (based on real `sync_runs` history, not just "is a CSV URL present").
 
 ---
 
-## 7. Final Verification Checklist — Milestone 0 Fully Operational
+## 7. Final Verification Checklist — Deployment Fully Operational
 
-Work through every item. Do not tag `v0.0` until all boxes are checked.
+Work through every item on a fresh deploy. This checklist covers basic
+plumbing (is everything wired up correctly); `docs/PRODUCTION_VALIDATION.md`,
+`docs/PRODUCTION_VALIDATION_M2.md`, and `docs/RC1_CHECKLIST.md` cover the
+fuller feature-by-feature pass before tagging `v1.0`.
 
 **Deploy pipeline**
 
@@ -309,24 +357,27 @@ Work through every item. Do not tag `v0.0` until all boxes are checked.
 
 **Storage**
 
-- [ ] On `/dev/storage-test` (your live Vercel URL), upload a normal image — see "✅ Upload + signed URL retrieval succeeded" and a working link.
-- [ ] Attempt to upload a file over 10 MB — see the client-side rejection message, confirm no upload occurred in the `receipts` bucket.
+- [ ] From the app, create an Expense with a receipt image attached (`/expense` → Add Expense) — confirms upload + the `receipts` bucket + Storage RLS all work together for real.
+- [ ] Attempt to upload a file over 10 MB — see the client-side rejection message, confirm no upload occurred in the bucket.
 
 **i18n**
 
-- [ ] On `/dev/i18n-test`, toggle between ไทย and English, confirm all visible text changes correctly both times.
+- [ ] On any page, toggle between ไทย and EN (top-right switcher), confirm all visible text changes correctly both times.
 
 **LINE Notifications**
 
-- [ ] `notify-line-test` invocation results in a real message arriving on your phone with the correct title, summary, amount, and working "Open Detail" button.
+- [ ] Settings → Notifications → add yourself as a recipient → "Send test message" → confirm it arrives on your phone.
+- [ ] Settings → System Health → LINE row shows ✅.
 
 **Google Sheets Sync**
 
-- [ ] `testSyncCall()` from the Sheet returns a `200` and the Edge Function logs show the correct row count received.
+- [ ] Settings → Integrations → configure a real published CSV URL → "Dry Run (Preview)" shows a sensible preview → "Sync Now" completes with a `success` or `partial` status.
+- [ ] Settings → System Health → Guest Sync row shows ✅ (or a reasonable ⚠️ if you haven't set it up yet).
 
 **Tag the release**
 
 - [ ] `git tag v0.0 && git push --tags`
 
-Once every box above is checked, Milestone 0 is complete and stable. Tell me
-when it's done and we'll move to Milestone 1 (Foundation) real feature work.
+Once every box above is checked, the basic deployment is confirmed
+operational. Continue to Milestone 1+ feature verification, and
+eventually `docs/RC1_CHECKLIST.md` before `v1.0`.
