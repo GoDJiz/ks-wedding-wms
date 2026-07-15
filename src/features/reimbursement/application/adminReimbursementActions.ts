@@ -70,14 +70,17 @@ export async function getReimbursementDetail(requestId: string): Promise<
 
     // Signed URLs generated server-side (Owner/Admin/Finance only, per the
     // storage_private_buckets_select_managers policy) — never a public URL.
+    // Parallelized since each file's signed URL is independent of the others.
     const fileUrls: Record<string, string> = {};
-    for (const file of files) {
-      const bucket = file.fileType === "slip" ? "slips" : "receipts";
-      const { data } = await supabase.storage
-        .from(bucket)
-        .createSignedUrl(file.storagePath, 60 * 10);
-      if (data) fileUrls[file.id] = data.signedUrl;
-    }
+    await Promise.all(
+      files.map(async (file) => {
+        const bucket = file.fileType === "slip" ? "slips" : "receipts";
+        const { data } = await supabase.storage
+          .from(bucket)
+          .createSignedUrl(file.storagePath, 60 * 10);
+        if (data) fileUrls[file.id] = data.signedUrl;
+      })
+    );
 
     return {
       ok: true,

@@ -24,7 +24,7 @@ type RunResult = {
 
 const PREVIEW_LIMIT = 100; // keep the response small — a preview, not a full dump
 
-function normalizeExternalKey(
+export function normalizeExternalKey(
   name: string,
   phone: string,
   email: string
@@ -33,14 +33,16 @@ function normalizeExternalKey(
   return `${name.trim().toLowerCase()}|${phone.trim()}`;
 }
 
-function normalizeRsvp(raw: string): "pending" | "attending" | "declined" {
+export function normalizeRsvp(
+  raw: string
+): "pending" | "attending" | "declined" {
   const v = raw.trim().toLowerCase();
   if (["yes", "attending", "y", "confirmed"].includes(v)) return "attending";
   if (["no", "declined", "n", "not attending"].includes(v)) return "declined";
   return "pending";
 }
 
-function parseAmount(raw: string): number {
+export function parseAmount(raw: string): number {
   const cleaned = raw.replace(/[^0-9.-]/g, "");
   const n = Number(cleaned);
   return Number.isFinite(n) ? n : 0;
@@ -101,23 +103,36 @@ export async function runGuestSync(
     };
   }
 
-  const [mappingsRes, flagRes, existingGuestsRes] = await Promise.all([
-    supabase
-      .from("sync_field_mappings")
-      .select("source_field, target_field")
-      .eq("project_id", projectId),
-    supabase
-      .from("feature_flags")
-      .select("enabled")
-      .eq("project_id", projectId)
-      .eq("flag_key", "sync_allow_overwrite_manual")
-      .maybeSingle(),
-    supabase
-      .from("guests")
-      .select("id, external_key, is_manually_modified")
-      .eq("project_id", projectId)
-      .eq("source", "sheet_sync"),
-  ]);
+  const [mappingsRes, flagRes, existingGuestsRes, defaultAccountRes] =
+    await Promise.all([
+      supabase
+        .from("sync_field_mappings")
+        .select("source_field, target_field")
+        .eq("project_id", projectId),
+      supabase
+        .from("feature_flags")
+        .select("enabled")
+        .eq("project_id", projectId)
+        .eq("flag_key", "sync_allow_overwrite_manual")
+        .maybeSingle(),
+      supabase
+        .from("guests")
+        .select("id, external_key, is_manually_modified")
+        .eq("project_id", projectId)
+        .eq("source", "sheet_sync"),
+      // Fetched once here, not inside the per-row loop below — the original
+      // version re-queried this for every row with a non-zero envelope/
+      // transfer amount (up to ~2 extra queries per row), a real N+1 found
+      // during the pre-v1.0 performance review.
+      supabase
+        .from("payment_accounts")
+        .select("id")
+        .eq("project_id", projectId)
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+  const defaultAccountId = defaultAccountRes.data?.id as string | undefined;
 
   const mapping = new Map<string, string>(
     (mappingsRes.data ?? []).map((m) => [
@@ -230,32 +245,24 @@ export async function runGuestSync(
       }
 
       // Mirror non-zero envelope/transfer amounts into incomes (real runs only).
-      if (!dryRun) {
+      if (!dryRun && defaultAccountId) {
         for (const [type, amount] of [
           ["transfer", guestFields.transfer_amount],
           ["envelope", guestFields.envelope_amount],
         ] as const) {
           if (amount > 0) {
-            const { data: account } = await supabase
-              .from("payment_accounts")
-              .select("id")
-              .eq("project_id", projectId)
-              .limit(1)
-              .maybeSingle();
-            if (account) {
-              await supabase.from("incomes").upsert(
-                {
-                  project_id: projectId,
-                  payment_account_id: account.id,
-                  guest_id: guestId,
-                  type,
-                  amount,
-                  date: new Date().toISOString().slice(0, 10),
-                  source: "sheet_sync",
-                },
-                { onConflict: "guest_id,type" }
-              );
-            }
+            await supabase.from("incomes").upsert(
+              {
+                project_id: projectId,
+                payment_account_id: defaultAccountId,
+                guest_id: guestId,
+                type,
+                amount,
+                date: new Date().toISOString().slice(0, 10),
+                source: "sheet_sync",
+              },
+              { onConflict: "guest_id,type" }
+            );
           }
         }
       }
