@@ -92,12 +92,26 @@ export async function removeRecipient(id: string): Promise<ActionResult<null>> {
 export async function sendTestNotification(
   lineUserId: string
 ): Promise<ActionResult<null>> {
-  const { error } = await sendLineMessage(lineUserId, {
-    title: "Test Notification",
-    summary: "This confirms LINE notifications are working correctly.",
-  });
-  if (error) return { ok: false, code: "unknown_error" };
-  return { ok: true, data: null };
+  try {
+    const { error } = await sendLineMessage(lineUserId, {
+      title: "Test Notification",
+      summary: "This confirms LINE notifications are working correctly.",
+    });
+    if (error) {
+      await logErrorServer({
+        module: "features/notifications/sendTestNotification",
+        errorMessage: error,
+      });
+      return { ok: false, code: "unknown_error" };
+    }
+    return { ok: true, data: null };
+  } catch (err) {
+    await logErrorServer({
+      module: "features/notifications/sendTestNotification",
+      errorMessage: err instanceof Error ? err.message : "Unknown error",
+    });
+    return { ok: false, code: "unknown_error" };
+  }
 }
 
 export async function sendPaymentRemindersNow(
