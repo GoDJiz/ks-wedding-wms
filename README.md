@@ -2,10 +2,16 @@
 
 Personal wedding ERP-style management system. Next.js + Supabase, free-tier only.
 
+See `CHANGELOG.md` (repo root) for a version-by-version history from v0.0 through v1.0.
+
 See `/docs` for:
 
 - `DEVELOPMENT_RULES.md` — binding coding standards (folder structure, naming, TypeScript, Git, security, performance)
-- `DEPLOYMENT.md` — complete, no-assumptions deployment package (GitHub, Supabase, Google OAuth, Vercel, LINE OA, Google Apps Script, final verification checklist)
+- `DEPLOYMENT_GUIDE_V1.md` — **the single source of truth for deploying and maintaining this app** — beginner-friendly, step-by-step, screenshot placeholders, checklists, troubleshooting, and a full maintenance guide
+- `PRE_DEPLOYMENT_CHECKLIST.md` — quick-reference final check before going live
+- `USER_MANUAL.md` — everyday usage guide (Login, Dashboard, Budget, Expense, Reimbursement, Guest, Income, Reports)
+- `ADMIN_MANUAL.md` — Owner/Admin guide (Project, Users, Permissions, Google Sync, LINE OA, Settings, Backup, Audit Log)
+- `DEPLOYMENT.md` — earlier, more technical deployment reference (still accurate, `DEPLOYMENT_GUIDE_V1.md` is the friendlier front door)
 - `MILESTONE_1_REVIEW.md` — Definition of Done self-review for Milestone 1 (Foundation)
 - `PRODUCTION_VALIDATION.md` — pre-`v0.1` production readiness checklist (run against the real deployed environment)
 - `PRODUCTION_VALIDATION_M2.md` — pre-`v0.2` addendum: seed script, Budget, Expense, Dashboard, Payment Accounts
