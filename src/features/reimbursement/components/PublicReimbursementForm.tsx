@@ -260,14 +260,3 @@ export function PublicReimbursementForm({
     </div>
   );
 }
-//Debug
-console.log("1. Submit", values);
-
-console.log("2. Upload success");
-
-const result = await submitReimbursement({
-  ...values,
-  filePaths,
-});
-
-console.log("3. Server Result", result);
