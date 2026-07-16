@@ -65,7 +65,7 @@ export function PublicReimbursementForm({
     setFiles(selected);
   };
 
-  const onSubmit = async (values: PublicSubmitInput) => {
+  const onSubmit = async (values: PublicSubmitFormInput) => {
     if (files.length === 0) {
       setFileError(tError("receipt_required"));
       return;
