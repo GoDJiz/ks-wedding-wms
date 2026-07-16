@@ -29,6 +29,8 @@ export const publicSubmitFormSchema = z
 export const publicSubmitSchema = publicSubmitFormSchema.extend({
   filePaths: z.array(z.string()).min(1, "receipt_required"),
 });
+//add
+export type PublicSubmitFormInput = z.input<typeof publicSubmitFormSchema>;
 
 export type PublicSubmitInput = z.input<typeof publicSubmitSchema>;
 export type PublicSubmitOutput = z.output<typeof publicSubmitSchema>;
