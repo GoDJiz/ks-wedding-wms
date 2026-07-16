@@ -13,8 +13,8 @@ import { createSupabaseBrowserClient } from "@/infrastructure/supabase/client";
 import type { ErrorCode } from "@/shared/lib/errorCodes";
 import type { PublicProjectInfo } from "../infrastructure/publicProjectRepository";
 import {
-  publicSubmitSchema,
-  type PublicSubmitInput,
+  publicSubmitFormSchema,
+  type PublicSubmitFormInput,
 } from "../reimbursement.types";
 import { submitReimbursement } from "../application/publicReimbursementActions";
 import { PaymentMethodPicker } from "./PaymentMethodPicker";
@@ -41,8 +41,8 @@ export function PublicReimbursementForm({
     control,
     reset,
     formState: { errors },
-  } = useForm<PublicSubmitInput>({
-    resolver: zodResolver(publicSubmitSchema),
+  } = useForm<PublicSubmitFormInput>({
+    resolver: zodResolver(publicSubmitFormSchema),
     defaultValues: {
       projectId: project.id,
       purchaseDate: new Date().toISOString().slice(0, 10),
@@ -65,7 +65,7 @@ export function PublicReimbursementForm({
     setFiles(selected);
   };
 
-  const onSubmit = async (values: PublicSubmitInput) => {
+  const onSubmit = async (values: PublicSubmitFormInput) => {
     if (files.length === 0) {
       setFileError(tError("receipt_required"));
       return;
