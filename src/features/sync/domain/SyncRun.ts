@@ -24,3 +24,8 @@ export type SyncSettings = {
   fieldMappings: FieldMapping[];
   allowOverwriteManual: boolean;
 };
+
+export type GuestIncomeSyncConfig = {
+  paymentAccountId: string | null;
+  paymentAccountOptions: { id: string; name: string }[];
+};

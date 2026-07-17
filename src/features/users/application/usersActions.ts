@@ -15,8 +15,6 @@ import {
   listWhitelistedUsers,
   insertWhitelistedUser,
   deleteWhitelistedUser,
-  bootstrapProjectMembership,
-  type BootstrapMembershipResult,
 } from "../infrastructure/usersRepository";
 
 export async function getWhitelistedUsers(
@@ -68,33 +66,6 @@ export async function inviteUser(
       projectId: parsed.data.projectId,
     });
     return { ok: false, code: "unknown_error" };
-  }
-}
-
-/**
- * Seats the currently authenticated user onto the project they were
- * invited to via /settings/users, if they aren't already a member.
- * See migration 0011 for why this has to be a SECURITY DEFINER RPC
- * rather than a plain table write: at this point in the flow the caller
- * has no project_members row yet, so RLS would otherwise block them from
- * reading their own whitelist entry or inserting their own membership.
- *
- * Intended to be called exactly once, right after a session is
- * established (src/app/auth/callback/route.ts). Never throws — a failure
- * here should not block login; worst case the user still lands on
- * /no-project, same as the pre-fix behavior, and this gets logged for
- * an admin to investigate.
- */
-export async function bootstrapMembershipForCurrentUser(): Promise<BootstrapMembershipResult> {
-  try {
-    const supabase = await createSupabaseServerClient();
-    return await bootstrapProjectMembership(supabase);
-  } catch (err) {
-    await logErrorServer({
-      module: "features/users/bootstrapMembershipForCurrentUser",
-      errorMessage: err instanceof Error ? err.message : "Unknown error",
-    });
-    return { joined: false, reason: "error", projectId: null, role: null };
   }
 }
 

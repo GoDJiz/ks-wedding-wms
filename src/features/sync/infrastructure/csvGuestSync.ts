@@ -2,8 +2,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseCsv } from "@/shared/lib/parseCsv";
 import { shortHash } from "@/shared/lib/shortHash";
 import {
-  getDefaultPaymentAccountId,
+  getConfiguredPaymentAccountId,
   upsertGuestIncome,
+  SYNC_MAPPING_KEYS,
 } from "@/shared/lib/guestIncomeSync";
 import type { SyncRunStatus } from "../domain/SyncRun";
 
@@ -67,6 +68,12 @@ export async function runGuestSync(
   dryRun = false
 ): Promise<RunResult> {
   const errorLog: { row: number; reason: string }[] = [];
+  // Set at most once per run (not per row) — see the income-sync block
+  // below. Deliberately never added to `failed`/`rowsFailed`: a missing
+  // Payment Account is a warning about a skipped side-effect, not a guest
+  // import failure, and must never flip the run's status away from
+  // "success".
+  let incomeSyncSkippedForMissingAccount = false;
   const preview: PreviewItem[] = [];
   let inserted = 0;
   let updated = 0;
@@ -107,12 +114,17 @@ export async function runGuestSync(
     };
   }
 
-  const [mappingsRes, flagRes, existingGuestsRes, defaultAccountId] =
+  const [mappingsRes, flagRes, existingGuestsRes, configuredAccountId] =
     await Promise.all([
       supabase
         .from("sync_field_mappings")
         .select("source_field, target_field")
-        .eq("project_id", projectId),
+        .eq("project_id", projectId)
+        // Excludes the guest->income Payment Account setting (see
+        // shared/lib/guestIncomeSync.ts) — this table also stores that one
+        // config value now (chat-approved reuse, no schema change), and it
+        // must never be treated as a CSV column mapping here.
+        .neq("target_field", SYNC_MAPPING_KEYS.GUEST_INCOME_PAYMENT_ACCOUNT),
       supabase
         .from("feature_flags")
         .select("enabled")
@@ -128,8 +140,10 @@ export async function runGuestSync(
       // version re-queried this for every row with a non-zero envelope/
       // transfer amount (up to ~2 extra queries per row), a real N+1 found
       // during the pre-v1.0 performance review. Now shared with the manual
-      // guest income sync path via shared/lib/guestIncomeSync.ts.
-      getDefaultPaymentAccountId(supabase, projectId),
+      // guest income sync path via shared/lib/guestIncomeSync.ts. As of the
+      // Settings -> Integrations configuration, this is the administrator-
+      // configured account, not an auto-picked first row.
+      getConfiguredPaymentAccountId(supabase, projectId),
     ]);
 
   const mapping = new Map<string, string>(
@@ -243,25 +257,32 @@ export async function runGuestSync(
       }
 
       // Mirror non-zero envelope/transfer amounts into incomes (real runs only).
-      // Uses the shared upsert helper (also used by the manual guest flow) —
-      // behavior is unchanged from before: only positive amounts sync here,
-      // a drop to 0 is not handled on this path (see guestIncomeSync.ts for
-      // where that's handled for manually-entered guests).
-      if (!dryRun && defaultAccountId) {
-        for (const [type, amount] of [
-          ["transfer", guestFields.transfer_amount],
-          ["envelope", guestFields.envelope_amount],
-        ] as const) {
-          if (amount > 0) {
-            await upsertGuestIncome(supabase, {
-              projectId,
-              paymentAccountId: defaultAccountId,
-              guestId,
-              type,
-              amount,
-              source: "sheet_sync",
-            });
+      // Uses the shared upsert helper (also used by the manual guest flow).
+      // Per chat decision: a missing configured Payment Account must never
+      // fail/abort the CSV guest import — guests keep importing normally,
+      // income sync is just skipped, and a single run-level warning (not
+      // one per row) is logged below instead of per-row noise.
+      if (!dryRun) {
+        const rowNeedsIncomeSync =
+          guestFields.transfer_amount > 0 || guestFields.envelope_amount > 0;
+        if (configuredAccountId) {
+          for (const [type, amount] of [
+            ["transfer", guestFields.transfer_amount],
+            ["envelope", guestFields.envelope_amount],
+          ] as const) {
+            if (amount > 0) {
+              await upsertGuestIncome(supabase, {
+                projectId,
+                paymentAccountId: configuredAccountId,
+                guestId,
+                type,
+                amount,
+                source: "sheet_sync",
+              });
+            }
           }
+        } else if (rowNeedsIncomeSync) {
+          incomeSyncSkippedForMissingAccount = true;
         }
       }
     } catch (err) {
@@ -275,6 +296,14 @@ export async function runGuestSync(
   const rowsProcessed = rows.length;
   const status: SyncRunStatus =
     failed === 0 ? "success" : inserted + updated > 0 ? "partial" : "failed";
+
+  if (incomeSyncSkippedForMissingAccount) {
+    errorLog.push({
+      row: -1,
+      reason:
+        "Warning: Guest income sync skipped for one or more guests — no Payment Account configured at Settings -> Integrations -> Sync Guest to Income. Guests were still imported normally.",
+    });
+  }
 
   return {
     status,

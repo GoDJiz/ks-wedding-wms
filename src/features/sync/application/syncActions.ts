@@ -6,7 +6,11 @@ import { requireSessionContext } from "@/shared/session/requireSessionContext";
 import { logErrorServer } from "@/shared/logging/logErrorServer";
 import type { ActionResult } from "@/shared/lib/actionResult";
 import { mapSupabaseError } from "@/shared/lib/mapSupabaseError";
-import type { SyncSettings, SyncRunSummary } from "../domain/SyncRun";
+import type {
+  SyncSettings,
+  SyncRunSummary,
+  GuestIncomeSyncConfig,
+} from "../domain/SyncRun";
 import type { PreviewItem } from "../infrastructure/csvGuestSync";
 import { runGuestSync } from "../infrastructure/csvGuestSync";
 import {
@@ -18,8 +22,11 @@ import {
   insertSyncRun,
   listSyncRuns,
   getSyncMetadata,
+  listPaymentAccountOptions,
+  upsertIncomePaymentAccountMapping,
   type SyncMetadata,
 } from "../infrastructure/syncRepository";
+import { getConfiguredPaymentAccountId } from "@/shared/lib/guestIncomeSync";
 
 export async function getSyncSettings(
   projectId: string
@@ -100,6 +107,61 @@ export async function setAllowOverwrite(
     await logErrorServer({
       module: "features/sync/setAllowOverwrite",
       errorMessage: err instanceof Error ? err.message : "Unknown error",
+    });
+    return { ok: false, code: "unknown_error" };
+  }
+}
+
+export async function getGuestIncomeSyncConfig(
+  projectId: string
+): Promise<ActionResult<GuestIncomeSyncConfig>> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const [paymentAccountId, paymentAccountOptions] = await Promise.all([
+      getConfiguredPaymentAccountId(supabase, projectId),
+      listPaymentAccountOptions(supabase, projectId),
+    ]);
+    return { ok: true, data: { paymentAccountId, paymentAccountOptions } };
+  } catch (err) {
+    await logErrorServer({
+      module: "features/sync/getGuestIncomeSyncConfig",
+      errorMessage: err instanceof Error ? err.message : "Unknown error",
+      projectId,
+    });
+    return { ok: false, code: "unknown_error" };
+  }
+}
+
+export async function updateGuestIncomeSyncPaymentAccount(
+  projectId: string,
+  paymentAccountId: string
+): Promise<ActionResult<null>> {
+  try {
+    const supabase = await createSupabaseServerClient();
+
+    // Re-validate server-side that this id actually belongs to the
+    // project's own payment_accounts — never trust the dropdown's value
+    // as-is, and never fall back to guessing if it doesn't match.
+    const options = await listPaymentAccountOptions(supabase, projectId);
+    if (!options.some((o) => o.id === paymentAccountId)) {
+      return { ok: false, code: "invalid_input" };
+    }
+
+    const { error } = await upsertIncomePaymentAccountMapping(
+      supabase,
+      projectId,
+      paymentAccountId
+    );
+    if (error) return { ok: false, code: mapSupabaseError(error) };
+
+    revalidatePath("/settings/integrations");
+    revalidatePath("/guests");
+    return { ok: true, data: null };
+  } catch (err) {
+    await logErrorServer({
+      module: "features/sync/updateGuestIncomeSyncPaymentAccount",
+      errorMessage: err instanceof Error ? err.message : "Unknown error",
+      projectId,
     });
     return { ok: false, code: "unknown_error" };
   }

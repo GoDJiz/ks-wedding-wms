@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { SyncSettings, SyncRunSummary } from "../domain/SyncRun";
+import { SYNC_MAPPING_KEYS } from "@/shared/lib/guestIncomeSync";
 
 export async function getSyncSettingsRow(
   supabase: SupabaseClient,
@@ -15,6 +16,10 @@ export async function getSyncSettingsRow(
       .from("sync_field_mappings")
       .select("id, source_field, target_field")
       .eq("project_id", projectId)
+      // Excludes the guest->income Payment Account setting, which also
+      // lives in this table now (see shared/lib/guestIncomeSync.ts) — it
+      // must never appear as an editable row in the CSV column-mapping UI.
+      .neq("target_field", SYNC_MAPPING_KEYS.GUEST_INCOME_PAYMENT_ACCOUNT)
       .order("target_field", { ascending: true }),
     supabase
       .from("feature_flags")
@@ -82,6 +87,44 @@ export async function setAllowOverwriteFlag(
       enabled,
     },
     { onConflict: "project_id,flag_key" }
+  );
+  return { error: error?.message ?? null };
+}
+
+export type PaymentAccountOption = { id: string; name: string };
+
+export async function listPaymentAccountOptions(
+  supabase: SupabaseClient,
+  projectId: string
+): Promise<PaymentAccountOption[]> {
+  const { data } = await supabase
+    .from("payment_accounts")
+    .select("id, name")
+    .eq("project_id", projectId)
+    .order("name", { ascending: true });
+  return (data ?? []) as PaymentAccountOption[];
+}
+
+/**
+ * Sets the administrator-selected Payment Account for guest->income sync.
+ * Stored in sync_field_mappings under a reserved key (chat-approved reuse,
+ * no schema change) — see SYNC_MAPPING_KEYS in shared/lib/guestIncomeSync.ts.
+ * Server-side callers must validate the
+ * given id actually belongs to this project's payment_accounts before
+ * calling this — this function does not re-validate that itself.
+ */
+export async function upsertIncomePaymentAccountMapping(
+  supabase: SupabaseClient,
+  projectId: string,
+  paymentAccountId: string
+): Promise<{ error: string | null }> {
+  const { error } = await supabase.from("sync_field_mappings").upsert(
+    {
+      project_id: projectId,
+      target_field: SYNC_MAPPING_KEYS.GUEST_INCOME_PAYMENT_ACCOUNT,
+      source_field: paymentAccountId,
+    },
+    { onConflict: "project_id,target_field" }
   );
   return { error: error?.message ?? null };
 }
