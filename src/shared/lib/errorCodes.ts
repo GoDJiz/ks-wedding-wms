@@ -23,5 +23,10 @@ export type ErrorCode =
   | "reject_reason_required"
   | "duplicate_possible"
   | "no_csv_url"
-  | "csv_fetch_failed"
+  | "csv_fetch_failed"  
+  | "line_not_configured"
+  | "line_invalid_recipient"
+  | "line_unauthorized"
+  | "line_forbidden"
+  | "line_send_failed"
   | "unknown_error";
