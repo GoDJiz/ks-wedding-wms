@@ -24,4 +24,9 @@ export type ErrorCode =
   | "duplicate_possible"
   | "no_csv_url"
   | "csv_fetch_failed"
+  | "line_not_configured"
+  | "line_invalid_recipient"
+  | "line_unauthorized"
+  | "line_forbidden"
+  | "line_send_failed"
   | "unknown_error";
