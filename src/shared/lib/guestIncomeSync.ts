@@ -14,23 +14,37 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export type GuestIncomeType = "transfer" | "envelope";
 
 /**
- * Looks up the project's default payment account for auto-created income
- * rows. Extracted from the CSV sync's original inline query so both sync
- * paths share one implementation instead of two copies drifting apart.
- * Returns undefined if the project has no payment account configured yet —
- * callers should skip income sync gracefully in that case, same as before.
+ * Keys this feature stores inside the existing sync_field_mappings table
+ * (project_id, source_field, target_field — unique on (project_id,
+ * target_field)). Reused per chat-approved "Option A": no schema change.
+ * IMPORTANT — every other reader of this table (getSyncSettingsRow in
+ * features/sync) must exclude these keys so they never leak into the
+ * unrelated CSV column-mapping UI/list.
  */
-export async function getDefaultPaymentAccountId(
+export const SYNC_MAPPING_KEYS = {
+  GUEST_INCOME_PAYMENT_ACCOUNT: "income_payment_account_id",
+} as const;
+
+/**
+ * Looks up the administrator-configured Payment Account for guest->income
+ * sync (set at /settings/integrations -> "Sync Guest to Income"). Replaces
+ * the old getDefaultPaymentAccountId, which silently auto-picked whichever
+ * payment_accounts row happened to be first — per chat decision, we no
+ * longer guess. Returns null if nothing has been configured yet; callers
+ * must treat that as a real "not configured" state (descriptive error +
+ * log), not a silent skip.
+ */
+export async function getConfiguredPaymentAccountId(
   supabase: SupabaseClient,
   projectId: string
-): Promise<string | undefined> {
+): Promise<string | null> {
   const { data } = await supabase
-    .from("payment_accounts")
-    .select("id")
+    .from("sync_field_mappings")
+    .select("source_field")
     .eq("project_id", projectId)
-    .limit(1)
+    .eq("target_field", SYNC_MAPPING_KEYS.GUEST_INCOME_PAYMENT_ACCOUNT)
     .maybeSingle();
-  return data?.id as string | undefined;
+  return (data?.source_field as string | undefined) ?? null;
 }
 
 /**
@@ -98,9 +112,11 @@ export async function zeroOutGuestIncome(
  * Composite entry point for the manual guest flow: given a guest's current
  * `transfer_amount`, either upserts the linked income (amount > 0) or zeros
  * out any existing one (amount <= 0/null), covering the ticket's Cases
- * 1, 2A, 2B and Scenario C in one call. Silently no-ops (like the CSV sync
- * path already did) if the project has no payment account configured yet —
- * guest creation/update should never fail because of a missing account.
+ * 1, 2A, 2B and Scenario C in one call. If no Payment Account has been
+ * configured at /settings/integrations, this returns a descriptive error
+ * instead of guessing — the guest write itself still succeeds either way
+ * (callers log this error but don't fail the guest save on it), and the
+ * guest simply shows "Pending" on /guests until an account is configured.
  */
 export async function syncGuestTransferIncome(
   supabase: SupabaseClient,
@@ -113,11 +129,16 @@ export async function syncGuestTransferIncome(
   const amount = input.transferAmount ?? 0;
 
   if (amount > 0) {
-    const paymentAccountId = await getDefaultPaymentAccountId(
+    const paymentAccountId = await getConfiguredPaymentAccountId(
       supabase,
       input.projectId
     );
-    if (!paymentAccountId) return { error: null };
+    if (!paymentAccountId) {
+      return {
+        error:
+          "Guest income sync is not configured: no Payment Account selected at Settings -> Integrations -> Sync Guest to Income.",
+      };
+    }
     return upsertGuestIncome(supabase, {
       projectId: input.projectId,
       paymentAccountId,
