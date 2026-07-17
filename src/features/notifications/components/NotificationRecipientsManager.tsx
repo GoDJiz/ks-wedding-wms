@@ -26,12 +26,14 @@ export function NotificationRecipientsManager({
   const [lineUserId, setLineUserId] = useState("");
   const [label, setLabel] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setErrorDetail(null);
     startTransition(async () => {
       const result = await addRecipient(projectId, lineUserId, label);
       if (!result.ok) {
@@ -65,12 +67,15 @@ export function NotificationRecipientsManager({
 
   const handleTest = (recipientLineUserId: string) => {
     setStatus(null);
+    setError(null);
+    setErrorDetail(null);
     startTransition(async () => {
       const result = await sendTestNotification(recipientLineUserId);
       if (result.ok) {
         setStatus(t.notifications.testSent);
       } else {
         setError(tError(result.code));
+        setErrorDetail(result.detail ?? null);
       }
     });
   };
@@ -119,7 +124,16 @@ export function NotificationRecipientsManager({
         </Button>
       </form>
 
-      {error && <InlineError message={error} />}
+      {error && (
+        <div>
+          <InlineError message={error} />
+          {errorDetail && (
+            <p className="mt-1 rounded-lg bg-slate-50 px-3 py-2 font-mono text-xs text-slate-500">
+              {errorDetail}
+            </p>
+          )}
+        </div>
+      )}
       {status && <p className="text-sm text-emerald-600">{status}</p>}
 
       {recipients.length === 0 ? (
