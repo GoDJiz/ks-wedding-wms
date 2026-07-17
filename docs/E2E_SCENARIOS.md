@@ -205,6 +205,50 @@ ones.
 4. Expected: `200`, a summary JSON, and a new row on
    `/settings/integrations`'s run history.
 
+**S4.10 — Manual (walk-in) guest create with a transfer amount (Case 1)**
+
+1. On `/guests`, click Add Guest, fill in name + a "Transfer amount" of
+   e.g. 5000, save.
+2. Expected: guest appears with `source: walk_in`; a new row appears on
+   `/income` — type "Transfer," amount 5000, linked to that guest,
+   `source: manual`. `/guests` shows a "Synced" badge next to the amount.
+
+**S4.11 — Walk-in guest amount 0 → positive (Scenario A)**
+
+1. Add a walk-in guest with no transfer amount (leave blank/0).
+2. Expected: no income row created, no badge shown (transfer amount is 0).
+3. Edit the guest, set transfer amount to 5000, save.
+4. Expected: exactly one new income row now exists for that guest, type
+   "Transfer," amount 5000. `/guests` shows "Synced."
+
+**S4.12 — Walk-in guest amount changes to a different positive amount (Scenario B)**
+
+1. Using the guest from S4.11 (transfer amount 5000, already synced),
+   edit it again and change the transfer amount to 7000, save.
+2. Expected: the **same** income row is updated to 7000 — check `/income`
+   shows only one Transfer row for this guest, not two. `/guests` still
+   shows "Synced" (amount now matches).
+
+**S4.13 — Walk-in guest amount drops to 0/blank (Scenario C, temporary zero-out)**
+
+1. Using the guest from S4.12, edit it again and clear the transfer
+   amount (set to 0 or blank), save.
+2. Expected: the linked income row is **not deleted** — it still appears
+   on `/income` for this guest, type "Transfer," but its amount is now 0.
+   `/guests` shows a "Cancelled" badge (not "Synced," not blank).
+3. Note: this is the documented temporary behavior until a real income
+   status/cancellation workflow exists (see
+   `src/shared/lib/guestIncomeSync.ts`) — a future milestone may replace
+   the zeroed amount with a proper `cancelled` status instead of removing
+   this scenario.
+
+**S4.14 — Duplicate prevention on repeated manual saves**
+
+1. Using a walk-in guest with a positive transfer amount, open Edit and
+   save again without changing anything (repeat 2-3 times).
+2. Expected: still exactly one income row for that guest+type after all
+   saves — no duplicates on `/income`.
+
 ---
 
 ## Adding new scenarios (future milestones)
