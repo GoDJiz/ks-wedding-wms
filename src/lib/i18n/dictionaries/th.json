@@ -258,7 +258,10 @@
     "sourceSheet": "ซิงค์จากชีต",
     "locked": "แก้ไขด้วยตนเอง (ไม่ถูกซิงค์ทับ)",
     "transferAmount": "ยอดโอน",
-    "envelopeAmount": "ยอดซอง"
+    "envelopeAmount": "ยอดซอง",
+    "incomeSynced": "ซิงค์แล้ว",
+    "incomePending": "รอซิงค์",
+    "incomeCancelled": "ยกเลิกแล้ว"
   },
   "income": {
     "pageTitle": "รายรับ",

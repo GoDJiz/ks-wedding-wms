@@ -258,7 +258,10 @@
     "sourceSheet": "Synced",
     "locked": "Manually edited (protected from sync)",
     "transferAmount": "Transfer amount",
-    "envelopeAmount": "Envelope amount"
+    "envelopeAmount": "Envelope amount",
+    "incomeSynced": "Synced",
+    "incomePending": "Pending sync",
+    "incomeCancelled": "Cancelled"
   },
   "income": {
     "pageTitle": "Income",
