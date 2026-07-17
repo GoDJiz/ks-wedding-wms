@@ -1,6 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { parseCsv } from "@/shared/lib/parseCsv";
 import { shortHash } from "@/shared/lib/shortHash";
+import {
+  getDefaultPaymentAccountId,
+  upsertGuestIncome,
+} from "@/shared/lib/guestIncomeSync";
 import type { SyncRunStatus } from "../domain/SyncRun";
 
 export type PreviewItem = {
@@ -103,7 +107,7 @@ export async function runGuestSync(
     };
   }
 
-  const [mappingsRes, flagRes, existingGuestsRes, defaultAccountRes] =
+  const [mappingsRes, flagRes, existingGuestsRes, defaultAccountId] =
     await Promise.all([
       supabase
         .from("sync_field_mappings")
@@ -123,16 +127,10 @@ export async function runGuestSync(
       // Fetched once here, not inside the per-row loop below — the original
       // version re-queried this for every row with a non-zero envelope/
       // transfer amount (up to ~2 extra queries per row), a real N+1 found
-      // during the pre-v1.0 performance review.
-      supabase
-        .from("payment_accounts")
-        .select("id")
-        .eq("project_id", projectId)
-        .limit(1)
-        .maybeSingle(),
+      // during the pre-v1.0 performance review. Now shared with the manual
+      // guest income sync path via shared/lib/guestIncomeSync.ts.
+      getDefaultPaymentAccountId(supabase, projectId),
     ]);
-
-  const defaultAccountId = defaultAccountRes.data?.id as string | undefined;
 
   const mapping = new Map<string, string>(
     (mappingsRes.data ?? []).map((m) => [
@@ -245,24 +243,24 @@ export async function runGuestSync(
       }
 
       // Mirror non-zero envelope/transfer amounts into incomes (real runs only).
+      // Uses the shared upsert helper (also used by the manual guest flow) —
+      // behavior is unchanged from before: only positive amounts sync here,
+      // a drop to 0 is not handled on this path (see guestIncomeSync.ts for
+      // where that's handled for manually-entered guests).
       if (!dryRun && defaultAccountId) {
         for (const [type, amount] of [
           ["transfer", guestFields.transfer_amount],
           ["envelope", guestFields.envelope_amount],
         ] as const) {
           if (amount > 0) {
-            await supabase.from("incomes").upsert(
-              {
-                project_id: projectId,
-                payment_account_id: defaultAccountId,
-                guest_id: guestId,
-                type,
-                amount,
-                date: new Date().toISOString().slice(0, 10),
-                source: "sheet_sync",
-              },
-              { onConflict: "guest_id,type" }
-            );
+            await upsertGuestIncome(supabase, {
+              projectId,
+              paymentAccountId: defaultAccountId,
+              guestId,
+              type,
+              amount,
+              source: "sheet_sync",
+            });
           }
         }
       }

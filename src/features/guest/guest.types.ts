@@ -7,6 +7,10 @@ export const createGuestSchema = z.object({
   email: z.string().email("invalid_email").optional().or(z.literal("")),
   tableNo: z.string().max(20).optional().or(z.literal("")),
   rsvpStatus: z.enum(["pending", "attending", "declined"]).default("pending"),
+  // Reuses the existing guests.transfer_amount column (was already present
+  // in the schema/domain type, just never exposed on the manual/walk-in
+  // guest form until now). Defaults to 0 — no transfer recorded.
+  transferAmount: z.coerce.number().min(0, "amount_required").default(0),
 });
 export type CreateGuestInput = z.input<typeof createGuestSchema>;
 

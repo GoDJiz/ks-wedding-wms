@@ -7,6 +7,7 @@ import { TextInput } from "@/shared/ui/TextInput";
 import { Select } from "@/shared/ui/Select";
 import { EmptyState, InlineError, PageSkeleton } from "@/shared/ui/StateViews";
 import { formatCurrency } from "@/shared/lib/formatCurrency";
+import { guestIncomeSyncStatus } from "@/shared/lib/guestIncomeSync";
 import type { Guest, RsvpStatus } from "../domain/Guest";
 import { getGuests, deleteGuest } from "../application/guestActions";
 import { GuestForm } from "./GuestForm";
@@ -63,6 +64,16 @@ export function GuestPageClient({
       attending: t.guest.rsvpAttending,
       declined: t.guest.rsvpDeclined,
     })[s];
+
+  const incomeSyncLabel = (g: Guest) => {
+    const s = guestIncomeSyncStatus(g.transferAmount, g.linkedTransferIncomeAmount);
+    return {
+      synced: t.guest.incomeSynced,
+      pending: t.guest.incomePending,
+      cancelled: t.guest.incomeCancelled,
+      none: null,
+    }[s];
+  };
 
   const handleDelete = (id: string) => {
     startTransition(async () => {
@@ -151,9 +162,16 @@ export function GuestPageClient({
                       : t.guest.sourceSheet}
                     {g.tableNo ? ` · ${t.guest.table} ${g.tableNo}` : ""}
                   </p>
-                  {(g.transferAmount > 0 || g.envelopeAmount > 0) && (
+                  {(g.transferAmount > 0 ||
+                    g.envelopeAmount > 0 ||
+                    incomeSyncLabel(g)) && (
                     <p className="text-xs text-slate-500">
                       {formatCurrency(g.transferAmount || g.envelopeAmount)}
+                      {incomeSyncLabel(g) && (
+                        <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-600">
+                          {incomeSyncLabel(g)}
+                        </span>
+                      )}
                     </p>
                   )}
                 </button>

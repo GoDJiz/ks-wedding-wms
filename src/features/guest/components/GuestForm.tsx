@@ -30,6 +30,9 @@ export function GuestForm({
   const [rsvpStatus, setRsvpStatus] = useState<RsvpStatus>(
     guest?.rsvpStatus ?? "pending"
   );
+  const [transferAmount, setTransferAmount] = useState(
+    guest?.transferAmount ? String(guest.transferAmount) : ""
+  );
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
 
@@ -47,6 +50,7 @@ export function GuestForm({
           email,
           tableNo,
           rsvpStatus,
+          transferAmount,
         })
       : await createGuest({
           projectId,
@@ -55,6 +59,7 @@ export function GuestForm({
           email,
           tableNo,
           rsvpStatus,
+          transferAmount,
         });
 
     if (result.ok) {
@@ -102,6 +107,15 @@ export function GuestForm({
           <option value="attending">{t.guest.rsvpAttending}</option>
           <option value="declined">{t.guest.rsvpDeclined}</option>
         </Select>
+      </FormField>
+      <FormField label={t.guest.transferAmount}>
+        <TextInput
+          type="number"
+          min="0"
+          step="0.01"
+          value={transferAmount}
+          onChange={(e) => setTransferAmount(e.target.value)}
+        />
       </FormField>
 
       {status === "error" && errorCode && (

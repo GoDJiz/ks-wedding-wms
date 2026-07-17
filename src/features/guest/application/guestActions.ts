@@ -6,6 +6,7 @@ import { logErrorServer } from "@/shared/logging/logErrorServer";
 import type { ActionResult } from "@/shared/lib/actionResult";
 import type { ErrorCode } from "@/shared/lib/errorCodes";
 import { mapSupabaseError } from "@/shared/lib/mapSupabaseError";
+import { syncGuestTransferIncome } from "@/shared/lib/guestIncomeSync";
 import type { Guest, RsvpStatus } from "../domain/Guest";
 import {
   createGuestSchema,
@@ -61,16 +62,35 @@ export async function createGuest(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { error } = await insertWalkInGuest(supabase, {
+    const { error, guestId } = await insertWalkInGuest(supabase, {
       projectId: parsed.data.projectId,
       name: parsed.data.name,
       phone: parsed.data.phone || null,
       email: parsed.data.email || null,
       tableNo: parsed.data.tableNo || null,
       rsvpStatus: parsed.data.rsvpStatus,
+      transferAmount: parsed.data.transferAmount,
     });
 
     if (error) return { ok: false, code: mapSupabaseError(error) };
+
+    // Sync /income per docs/SYNC_STRATEGY.md-style rules — only creates an
+    // income row when transferAmount > 0 (Case 1); never blocks guest
+    // creation if this fails.
+    if (guestId) {
+      const { error: syncError } = await syncGuestTransferIncome(supabase, {
+        projectId: parsed.data.projectId,
+        guestId,
+        transferAmount: parsed.data.transferAmount,
+      });
+      if (syncError) {
+        await logErrorServer({
+          module: "features/guest/createGuest/incomeSync",
+          errorMessage: syncError,
+          projectId: parsed.data.projectId,
+        });
+      }
+    }
 
     revalidatePath("/guests");
     return { ok: true, data: null };
@@ -102,9 +122,27 @@ export async function updateGuest(
       email: parsed.data.email || null,
       tableNo: parsed.data.tableNo || null,
       rsvpStatus: parsed.data.rsvpStatus,
+      transferAmount: parsed.data.transferAmount,
     });
 
     if (error) return { ok: false, code: mapSupabaseError(error) };
+
+    // Covers Scenario A (0 -> amount, creates income), Scenario B (amount ->
+    // amount, updates the existing linked income via upsert — no duplicate),
+    // and Scenario C (amount -> 0/null, zeroes out the linked income instead
+    // of deleting it — see guestIncomeSync.ts for why).
+    const { error: syncError } = await syncGuestTransferIncome(supabase, {
+      projectId: parsed.data.projectId,
+      guestId: parsed.data.guestId,
+      transferAmount: parsed.data.transferAmount,
+    });
+    if (syncError) {
+      await logErrorServer({
+        module: "features/guest/updateGuest/incomeSync",
+        errorMessage: syncError,
+        projectId: parsed.data.projectId,
+      });
+    }
 
     revalidatePath("/guests");
     return { ok: true, data: null };

@@ -13,9 +13,14 @@ type GuestRow = {
   remark: string | null;
   source: Guest["source"];
   is_manually_modified: boolean;
+  // Embedded via the existing guests -> incomes relationship (incomes.guest_id
+  // FK) — not a new column. May contain both 'transfer' and 'envelope' rows;
+  // we only care about 'transfer' here.
+  incomes: { type: string; amount: number }[] | null;
 };
 
 function toDomain(row: GuestRow): Guest {
+  const linkedTransfer = (row.incomes ?? []).find((i) => i.type === "transfer");
   return {
     id: row.id,
     name: row.name,
@@ -28,11 +33,14 @@ function toDomain(row: GuestRow): Guest {
     remark: row.remark,
     source: row.source,
     isManuallyModified: row.is_manually_modified,
+    linkedTransferIncomeAmount: linkedTransfer
+      ? Number(linkedTransfer.amount)
+      : null,
   };
 }
 
 const GUEST_SELECT =
-  "id, name, phone, email, table_no, rsvp_status, transfer_amount, envelope_amount, remark, source, is_manually_modified";
+  "id, name, phone, email, table_no, rsvp_status, transfer_amount, envelope_amount, remark, source, is_manually_modified, incomes(type, amount)";
 
 export async function listGuests(
   supabase: SupabaseClient,
@@ -81,18 +89,27 @@ export async function insertWalkInGuest(
     email: string | null;
     tableNo: string | null;
     rsvpStatus: string;
+    transferAmount: number;
   }
-): Promise<{ error: string | null }> {
-  const { error } = await supabase.from("guests").insert({
-    project_id: input.projectId,
-    name: input.name,
-    phone: input.phone,
-    email: input.email,
-    table_no: input.tableNo,
-    rsvp_status: input.rsvpStatus,
-    source: "walk_in",
-  });
-  return { error: error?.message ?? null };
+): Promise<{ error: string | null; guestId: string | null }> {
+  const { data, error } = await supabase
+    .from("guests")
+    .insert({
+      project_id: input.projectId,
+      name: input.name,
+      phone: input.phone,
+      email: input.email,
+      table_no: input.tableNo,
+      rsvp_status: input.rsvpStatus,
+      transfer_amount: input.transferAmount,
+      source: "walk_in",
+    })
+    .select("id")
+    .single();
+  return {
+    error: error?.message ?? null,
+    guestId: (data?.id as string) ?? null,
+  };
 }
 
 export async function updateGuestRow(
@@ -104,6 +121,7 @@ export async function updateGuestRow(
     email: string | null;
     tableNo: string | null;
     rsvpStatus: string;
+    transferAmount: number;
   }
 ): Promise<{ error: string | null }> {
   // Any manual edit through the app marks the guest protected from future
@@ -117,6 +135,7 @@ export async function updateGuestRow(
       email: input.email,
       table_no: input.tableNo,
       rsvp_status: input.rsvpStatus,
+      transfer_amount: input.transferAmount,
       is_manually_modified: true,
       updated_at: new Date().toISOString(),
     })
