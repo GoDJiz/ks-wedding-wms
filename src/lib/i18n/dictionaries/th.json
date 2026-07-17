@@ -99,6 +99,11 @@
     "invalid_email": "กรุณาระบุอีเมลที่ถูกต้อง",
     "already_whitelisted": "อีเมลนี้ได้รับอนุญาตอยู่แล้ว",
     "invalid_input": "ข้อมูลไม่ถูกต้อง",
+    "line_not_configured": "ยังไม่ได้ตั้งค่าการแจ้งเตือน LINE บนเซิร์ฟเวอร์ (ไม่พบ channel access token) กรุณาแจ้งผู้ดูแลระบบให้ตั้งค่า LINE_CHANNEL_ACCESS_TOKEN ใน Vercel",
+    "line_invalid_recipient": "รูปแบบ LINE User ID ไม่ถูกต้อง ควรขึ้นต้นด้วย \"U\" ตามด้วยตัวอักษร 32 ตัว (ไม่ใช่ชื่อที่แสดงหรือ Group ID)",
+    "line_unauthorized": "LINE ปฏิเสธ channel access token (401 Unauthorized) โทเคนใน Vercel ไม่ถูกต้องหรือหมดอายุ กรุณาสร้าง channel access token ใหม่ใน LINE Developers Console",
+    "line_forbidden": "LINE ปฏิเสธคำขอนี้ (403 Forbidden) ช่องทางนี้ไม่มีสิทธิ์ส่งข้อความนี้ กรุณาตรวจสอบแพ็กเกจ/โควตาใน LINE Developers Console",
+    "line_send_failed": "LINE ไม่สามารถส่งข้อความได้ ซึ่งมักหมายความว่าผู้รับยังไม่ได้เพิ่มบัญชี LINE Official Account เป็นเพื่อน หรือได้บล็อกไว้",
     "unknown_error": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
     "file_too_large": "ไฟล์ต้องไม่เกิน 10MB",
     "amount_required": "กรุณาระบุจำนวนเงินที่มากกว่า 0",
@@ -378,3 +383,4 @@
     "guestSync": "การซิงค์รายชื่อแขก"
   }
 }
+
