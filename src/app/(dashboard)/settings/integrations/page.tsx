@@ -6,18 +6,22 @@ import {
   getSyncSettings,
   getSyncRunHistory,
   getSyncMetadataAction,
+  getGuestIncomeSyncConfig,
 } from "@/features/sync/application/syncActions";
 import { SyncSettingsPanel } from "@/features/sync/components/SyncSettingsPanel";
+import { GuestIncomeSyncPanel } from "@/features/sync/components/GuestIncomeSyncPanel";
 
 export default async function IntegrationsPage() {
   const { projectId } = await requireSessionContext();
   const { t } = await getDictionary();
 
-  const [settingsResult, runsResult, metadataResult] = await Promise.all([
-    getSyncSettings(projectId),
-    getSyncRunHistory(projectId),
-    getSyncMetadataAction(projectId),
-  ]);
+  const [settingsResult, runsResult, metadataResult, guestIncomeConfigResult] =
+    await Promise.all([
+      getSyncSettings(projectId),
+      getSyncRunHistory(projectId),
+      getSyncMetadataAction(projectId),
+      getGuestIncomeSyncConfig(projectId),
+    ]);
 
   if (!settingsResult.ok) {
     return (
@@ -42,6 +46,14 @@ export default async function IntegrationsPage() {
                 totalRowsProcessed: 0,
                 currentCsvHash: null,
               }
+        }
+      />
+      <GuestIncomeSyncPanel
+        projectId={projectId}
+        initialConfig={
+          guestIncomeConfigResult.ok
+            ? guestIncomeConfigResult.data
+            : { paymentAccountId: null, paymentAccountOptions: [] }
         }
       />
     </PageLayout>
