@@ -23,6 +23,19 @@ import {
 
 const PAGE_SIZE = 30;
 
+/**
+ * Turns syncGuestTransferIncome's raw error (either our own "not configured"
+ * message, or a raw Postgres/RLS error) into one clear sentence for the UI.
+ * Reuses mapSupabaseError instead of duplicating its RLS-detection logic.
+ */
+function describeSyncWarning(syncError: string | null): string | undefined {
+  if (!syncError) return undefined;
+  if (mapSupabaseError(syncError) === "permission_denied") {
+    return "Guest saved, but income sync failed: your account does not have permission to write Income records for this project (requires Owner/Admin/Finance role).";
+  }
+  return `Guest saved, but income sync failed: ${syncError}`;
+}
+
 export async function getGuests(
   projectId: string,
   page: number,
@@ -76,7 +89,9 @@ export async function createGuest(
 
     // Sync /income per docs/SYNC_STRATEGY.md-style rules — only creates an
     // income row when transferAmount > 0 (Case 1); never blocks guest
-    // creation if this fails.
+    // creation if this fails, but the reason is now surfaced to the caller
+    // (`warning`) instead of only being logged — see actionResult.ts.
+    let syncWarning: string | undefined;
     if (guestId) {
       const { error: syncError } = await syncGuestTransferIncome(supabase, {
         projectId: parsed.data.projectId,
@@ -84,6 +99,7 @@ export async function createGuest(
         transferAmount: parsed.data.transferAmount,
       });
       if (syncError) {
+        syncWarning = syncError;
         await logErrorServer({
           module: "features/guest/createGuest/incomeSync",
           errorMessage: syncError,
@@ -93,7 +109,7 @@ export async function createGuest(
     }
 
     revalidatePath("/guests");
-    return { ok: true, data: null };
+    return { ok: true, data: null, warning: describeSyncWarning(syncWarning ?? null) };
   } catch (err) {
     await logErrorServer({
       module: "features/guest/createGuest",
@@ -130,7 +146,8 @@ export async function updateGuest(
     // Covers Scenario A (0 -> amount, creates income), Scenario B (amount ->
     // amount, updates the existing linked income via upsert — no duplicate),
     // and Scenario C (amount -> 0/null, zeroes out the linked income instead
-    // of deleting it — see guestIncomeSync.ts for why).
+    // of deleting it — see guestIncomeSync.ts for why). Failure is surfaced
+    // via `warning`, not only logged — see actionResult.ts.
     const { error: syncError } = await syncGuestTransferIncome(supabase, {
       projectId: parsed.data.projectId,
       guestId: parsed.data.guestId,
@@ -145,7 +162,7 @@ export async function updateGuest(
     }
 
     revalidatePath("/guests");
-    return { ok: true, data: null };
+    return { ok: true, data: null, warning: describeSyncWarning(syncError) };
   } catch (err) {
     await logErrorServer({
       module: "features/guest/updateGuest",

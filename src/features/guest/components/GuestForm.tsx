@@ -35,6 +35,7 @@ export function GuestForm({
   );
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
+  const [syncWarning, setSyncWarning] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +64,15 @@ export function GuestForm({
         });
 
     if (result.ok) {
-      onSaved();
+      if (result.warning) {
+        // Guest saved, but the income sync had a problem — keep the form
+        // open so the reason is actually seen, instead of closing straight
+        // away (see guestActions.ts's `warning` field).
+        setStatus("idle");
+        setSyncWarning(result.warning);
+      } else {
+        onSaved();
+      }
     } else {
       setStatus("error");
       setErrorCode(result.code);
@@ -120,6 +129,19 @@ export function GuestForm({
 
       {status === "error" && errorCode && (
         <InlineError message={tError(errorCode)} />
+      )}
+
+      {syncWarning && (
+        <div className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          <p>{syncWarning}</p>
+          <button
+            type="button"
+            className="mt-2 font-medium underline"
+            onClick={onSaved}
+          >
+            {t.common.back}
+          </button>
+        </div>
       )}
 
       <FormActions
