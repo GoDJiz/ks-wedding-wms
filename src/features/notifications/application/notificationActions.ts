@@ -40,18 +40,29 @@ export async function getRecipients(
   }
 }
 
+// A LINE User ID is always "U" followed by 32 lowercase hex characters
+// (see https://developers.line.biz/en/docs/messaging-api/getting-user-ids/).
+// Rejecting anything else here catches the most common real-world mistake
+// — pasting a display name, a group/room ID, or a stray whitespace/quote —
+// before it ever reaches the LINE API as an opaque 400 at test-send time.
+const LINE_USER_ID_PATTERN = /^U[0-9a-f]{32}$/;
+
 export async function addRecipient(
   projectId: string,
   lineUserId: string,
   label: string
 ): Promise<ActionResult<null>> {
-  if (!lineUserId.trim()) return { ok: false, code: "invalid_input" };
+  const trimmedId = lineUserId.trim();
+  if (!trimmedId) return { ok: false, code: "invalid_input" };
+  if (!LINE_USER_ID_PATTERN.test(trimmedId)) {
+    return { ok: false, code: "line_invalid_recipient" };
+  }
 
   try {
     const supabase = await createSupabaseServerClient();
     const { error } = await supabase.from("notification_recipients").insert({
       project_id: projectId,
-      line_user_id: lineUserId.trim(),
+      line_user_id: trimmedId,
       label: label || null,
     });
 
@@ -91,18 +102,51 @@ export async function removeRecipient(id: string): Promise<ActionResult<null>> {
 
 export async function sendTestNotification(
   lineUserId: string
-): Promise<ActionResult<null>> {
+): Promise<ActionResult<null> & { detail?: string }> {
   try {
-    const { error } = await sendLineMessage(lineUserId, {
+    const { error, status, detail } = await sendLineMessage(lineUserId, {
       title: "Test Notification",
       summary: "This confirms LINE notifications are working correctly.",
     });
     if (error) {
+      // Log the real HTTP status + LINE's own error body — this is what
+      // actually lets someone tell "token invalid" apart from "invalid
+      // recipient ID" apart from "LINE is down" in application_logs,
+      // instead of every failure looking identical.
       await logErrorServer({
         module: "features/notifications/sendTestNotification",
-        errorMessage: error,
+        errorMessage: `status=${status} lineUserId=${lineUserId} ${error}`,
       });
-      return { ok: false, code: "unknown_error" };
+
+      // status -1: env var missing entirely (see lineClient.ts).
+      if (status === -1) {
+        return { ok: false, code: "line_not_configured" };
+      }
+      // 401: the channel access token itself is invalid/expired/revoked.
+      if (status === 401) {
+        return { ok: false, code: "line_unauthorized", detail: detail ?? undefined };
+      }
+      // 403: token is valid but the channel lacks permission for this
+      // operation (e.g. a plan/quota restriction).
+      if (status === 403) {
+        return { ok: false, code: "line_forbidden", detail: detail ?? undefined };
+      }
+      // 400: malformed request — in practice for a test send this is
+      // almost always an invalid/mistyped LINE User ID (LINE returns
+      // "The property, 'to', in the request body is invalid" for a
+      // recipient who doesn't exist or hasn't added the OA as a friend).
+      if (status === 400) {
+        return {
+          ok: false,
+          code: "line_invalid_recipient",
+          detail: detail ?? undefined,
+        };
+      }
+      return {
+        ok: false,
+        code: "line_send_failed",
+        detail: detail ?? error,
+      };
     }
     return { ok: true, data: null };
   } catch (err) {
