@@ -5,14 +5,21 @@ import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { Button } from "@/shared/ui/Button";
 import { FormField } from "@/shared/ui/FormField";
 import { TextInput } from "@/shared/ui/TextInput";
+import { Select } from "@/shared/ui/Select";
 import { EmptyState, InlineError } from "@/shared/ui/StateViews";
-import type { SyncSettings, SyncRunSummary } from "../domain/SyncRun";
+import type {
+  SyncSettings,
+  SyncRunSummary,
+  AutoSyncIntervalMinutes,
+} from "../domain/SyncRun";
+import { AUTO_SYNC_INTERVAL_OPTIONS } from "../domain/SyncRun";
 import type { SyncMetadata } from "../infrastructure/syncRepository";
 import type { PreviewItem } from "../infrastructure/csvGuestSync";
 import {
   updateCsvUrl,
   updateFieldMapping,
   setAllowOverwrite,
+  updateAutoSync,
   triggerGuestSync,
 } from "../application/syncActions";
 
@@ -33,6 +40,16 @@ export function SyncSettingsPanel({
   const [allowOverwrite, setAllowOverwriteState] = useState(
     initialSettings.allowOverwriteManual
   );
+  const [autoSyncEnabled, setAutoSyncEnabledState] = useState(
+    initialSettings.autoSyncEnabled
+  );
+  const [syncIntervalMinutes, setSyncIntervalMinutesState] = useState(
+    initialSettings.syncIntervalMinutes
+  );
+  const [lastSyncAt] = useState(initialSettings.lastSyncAt);
+  const [nextSyncAt, setNextSyncAt] = useState(initialSettings.nextSyncAt);
+  const [autoSyncError, setAutoSyncError] = useState<string | null>(null);
+  const [autoSyncPending, startAutoSyncTransition] = useTransition();
   const [runs, setRuns] = useState(initialRuns);
   const [metadata, setMetadata] = useState(initialMetadata);
   const [lastSummary, setLastSummary] = useState<
@@ -101,6 +118,64 @@ export function SyncSettingsPanel({
     });
   };
 
+  const handleToggleAutoSync = () => {
+    const next = !autoSyncEnabled;
+    const prevNextSyncAt = nextSyncAt;
+    setAutoSyncError(null);
+    setAutoSyncEnabledState(next);
+    startAutoSyncTransition(async () => {
+      const result = await updateAutoSync(
+        projectId,
+        next,
+        syncIntervalMinutes
+      );
+      if (result.ok) {
+        setNextSyncAt(
+          next
+            ? new Date(
+                Date.now() + syncIntervalMinutes * 60_000
+              ).toISOString()
+            : null
+        );
+      } else {
+        setAutoSyncEnabledState(!next);
+        setNextSyncAt(prevNextSyncAt);
+        setAutoSyncError(tError(result.code));
+      }
+    });
+  };
+
+  const handleIntervalChange = (value: string) => {
+    const minutes = Number(value) as AutoSyncIntervalMinutes;
+    const prevInterval = syncIntervalMinutes;
+    const prevNextSyncAt = nextSyncAt;
+    setAutoSyncError(null);
+    setSyncIntervalMinutesState(minutes);
+    startAutoSyncTransition(async () => {
+      const result = await updateAutoSync(projectId, autoSyncEnabled, minutes);
+      if (result.ok) {
+        if (autoSyncEnabled) {
+          setNextSyncAt(new Date(Date.now() + minutes * 60_000).toISOString());
+        }
+      } else {
+        setSyncIntervalMinutesState(prevInterval);
+        setNextSyncAt(prevNextSyncAt);
+        setAutoSyncError(tError(result.code));
+      }
+    });
+  };
+
+  const intervalLabel = (minutes: number) =>
+    ({
+      15: t.sync.intervalEvery15Min,
+      30: t.sync.intervalEvery30Min,
+      60: t.sync.intervalEvery1Hour,
+      180: t.sync.intervalEvery3Hours,
+      360: t.sync.intervalEvery6Hours,
+      720: t.sync.intervalEvery12Hours,
+      1440: t.sync.intervalEvery24Hours,
+    })[minutes] ?? String(minutes);
+
   const runSync = (dryRun: boolean) => {
     setError(null);
     setLastSummary(null);
@@ -152,6 +227,60 @@ export function SyncSettingsPanel({
           </span>
           <span className="font-mono">
             {t.sync.currentCsvVersion}: {metadata.currentCsvHash ?? "—"}
+          </span>
+        </div>
+      </div>
+
+      <div className="space-y-3 rounded-2xl bg-white/70 p-4">
+        <p className="mb-1 text-sm font-medium text-slate-600">
+          {t.sync.autoSyncTitle}
+        </p>
+
+        <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm text-slate-600">
+          <input
+            type="checkbox"
+            checked={autoSyncEnabled}
+            onChange={handleToggleAutoSync}
+            disabled={autoSyncPending}
+            className="h-5 w-5 accent-sky-400"
+          />
+          {t.sync.autoSyncEnable}
+        </label>
+
+        <FormField label={t.sync.autoSyncInterval}>
+          <Select
+            value={syncIntervalMinutes}
+            onChange={(e) => handleIntervalChange(e.target.value)}
+            disabled={!autoSyncEnabled || autoSyncPending}
+          >
+            {AUTO_SYNC_INTERVAL_OPTIONS.map((minutes) => (
+              <option key={minutes} value={minutes}>
+                {intervalLabel(minutes)}
+              </option>
+            ))}
+          </Select>
+        </FormField>
+
+        {autoSyncError && <InlineError message={autoSyncError} />}
+
+        <div className="grid grid-cols-1 gap-2 text-xs text-slate-600 sm:grid-cols-3">
+          <span>
+            {t.sync.autoSyncStatus}:{" "}
+            {autoSyncEnabled ? (
+              <span className="text-emerald-600">🟢 {t.sync.autoSyncStatusEnabled}</span>
+            ) : (
+              <span className="text-slate-500">⚪ {t.sync.autoSyncStatusDisabled}</span>
+            )}
+          </span>
+          <span>
+            {t.sync.autoSyncLastSync}:{" "}
+            {lastSyncAt ? new Date(lastSyncAt).toLocaleString() : t.sync.never}
+          </span>
+          <span>
+            {t.sync.autoSyncNextSync}:{" "}
+            {autoSyncEnabled && nextSyncAt
+              ? new Date(nextSyncAt).toLocaleString()
+              : t.sync.never}
           </span>
         </div>
       </div>
