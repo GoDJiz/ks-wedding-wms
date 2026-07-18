@@ -327,7 +327,36 @@ yourself occasionally. For automatic scheduled sync:
       → Time-driven → choose a frequency (e.g. daily) → Save. Repeat for
       the other function if you want both scheduled.
 
-### 6.5 Verify via System Health
+### 6.5 Optional: Configurable Auto Sync (Supabase pg_cron) instead of Apps Script
+
+An alternative to §6.4 that doesn't depend on Google Apps Script staying
+configured: a single global `pg_cron` job (added by migration
+`0013_auto_sync_scheduler.sql`) ticks every 5 minutes and calls
+`/api/sync/guests` in `"auto"` mode, which syncs every project whose Auto
+Sync is enabled and due. The interval and on/off toggle are configured
+per-project in the app — Settings → Integrations → Auto Sync — the cron
+job itself never changes.
+
+- [ ] In the Supabase SQL Editor, run once (values from §4.2/§6.3):
+      ```sql
+      select vault.create_secret(
+        'https://<your-vercel-domain>/api/sync/guests',
+        'auto_sync_endpoint_url'
+      );
+      select vault.create_secret(
+        '<same value as SHEET_SYNC_SHARED_SECRET>',
+        'auto_sync_shared_secret'
+      );
+      ```
+- [ ] Settings → Integrations → turn on **Enable Auto Sync**, pick an
+      interval. Saves immediately; no redeploy needed.
+- [ ] Wait up to 5 minutes, then confirm **Last Sync** / **Next Sync** on
+      that page update, and a new row appears in Sync History.
+- [ ] These two approaches (§6.4 Apps Script, §6.5 pg_cron) are
+      independent — use one or the other for a given project, not both, to
+      avoid double-syncing.
+
+### 6.6 Verify via System Health
 
 - [ ] Settings → System Health → confirm the **Guest Sync** row shows ✅
       (based on real `sync_runs` history, not just "is a CSV URL present").
