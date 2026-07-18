@@ -1,5 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { SyncSettings, SyncRunSummary } from "../domain/SyncRun";
+import type {
+  SyncSettings,
+  SyncRunSummary,
+  AutoSyncIntervalMinutes,
+} from "../domain/SyncRun";
 import { SYNC_MAPPING_KEYS } from "@/shared/lib/guestIncomeSync";
 
 export async function getSyncSettingsRow(
@@ -9,7 +13,9 @@ export async function getSyncSettingsRow(
   const [configRes, mappingsRes, flagRes] = await Promise.all([
     supabase
       .from("sync_configs")
-      .select("csv_url")
+      .select(
+        "csv_url, auto_sync_enabled, sync_interval_minutes, last_sync_at, next_sync_at"
+      )
       .eq("project_id", projectId)
       .maybeSingle(),
     supabase
@@ -37,7 +43,77 @@ export async function getSyncSettingsRow(
       targetField: m.target_field as string,
     })),
     allowOverwriteManual: flagRes.data?.enabled === true,
+    autoSyncEnabled: configRes.data?.auto_sync_enabled === true,
+    syncIntervalMinutes: (configRes.data?.sync_interval_minutes ??
+      60) as AutoSyncIntervalMinutes,
+    lastSyncAt: (configRes.data?.last_sync_at as string | null) ?? null,
+    nextSyncAt: (configRes.data?.next_sync_at as string | null) ?? null,
   };
+}
+
+/**
+ * Updates the Auto Sync toggle and/or interval for a project. Only ever
+ * writes `next_sync_at` here (never creates/removes the pg_cron job — that
+ * stays a single global schedule, see migration 0013). Turning Auto Sync on
+ * or changing the interval both reschedule `next_sync_at` to "now + the
+ * (possibly new) interval" so the next global cron tick picks up the change
+ * without needing an immediate sync.
+ */
+export async function updateAutoSyncSettings(
+  supabase: SupabaseClient,
+  projectId: string,
+  autoSyncEnabled: boolean,
+  syncIntervalMinutes: AutoSyncIntervalMinutes
+): Promise<{ error: string | null }> {
+  const nextSyncAt = autoSyncEnabled
+    ? new Date(Date.now() + syncIntervalMinutes * 60_000).toISOString()
+    : null;
+
+  const { error } = await supabase.from("sync_configs").upsert(
+    {
+      project_id: projectId,
+      auto_sync_enabled: autoSyncEnabled,
+      sync_interval_minutes: syncIntervalMinutes,
+      next_sync_at: nextSyncAt,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "project_id" }
+  );
+  return { error: error?.message ?? null };
+}
+
+/**
+ * Atomically claims every project whose Auto Sync is due right now and
+ * reschedules its `next_sync_at` in the same statement (via the
+ * `claim_due_auto_syncs` SQL function — see migration 0013). This is what
+ * makes concurrent/overlapping cron ticks safe: a project claimed by one
+ * call is immediately rescheduled, so a second call racing it will not see
+ * it as due anymore.
+ */
+export type DueAutoSync = {
+  projectId: string;
+  csvUrl: string | null;
+};
+
+export async function claimDueAutoSyncs(
+  supabase: SupabaseClient
+): Promise<DueAutoSync[]> {
+  const { data, error } = await supabase.rpc("claim_due_auto_syncs");
+  if (error || !data) return [];
+  return (data as { project_id: string; csv_url: string | null }[]).map(
+    (row) => ({ projectId: row.project_id, csvUrl: row.csv_url })
+  );
+}
+
+export async function markAutoSyncAttempted(
+  supabase: SupabaseClient,
+  projectId: string,
+  attemptedAt: string
+): Promise<void> {
+  await supabase
+    .from("sync_configs")
+    .update({ last_sync_at: attemptedAt })
+    .eq("project_id", projectId);
 }
 
 export async function upsertCsvUrl(
