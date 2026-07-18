@@ -19,10 +19,21 @@ export type FieldMapping = {
   targetField: string;
 };
 
+// Keep in sync with the `sync_configs_sync_interval_minutes_check` constraint
+// in supabase/migrations/0013_auto_sync_scheduler.sql.
+export const AUTO_SYNC_INTERVAL_OPTIONS = [
+  15, 30, 60, 180, 360, 720, 1440,
+] as const;
+export type AutoSyncIntervalMinutes = (typeof AUTO_SYNC_INTERVAL_OPTIONS)[number];
+
 export type SyncSettings = {
   csvUrl: string | null;
   fieldMappings: FieldMapping[];
   allowOverwriteManual: boolean;
+  autoSyncEnabled: boolean;
+  syncIntervalMinutes: AutoSyncIntervalMinutes;
+  lastSyncAt: string | null;
+  nextSyncAt: string | null;
 };
 
 export type GuestIncomeSyncConfig = {
