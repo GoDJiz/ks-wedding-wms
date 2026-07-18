@@ -10,7 +10,9 @@ import type {
   SyncSettings,
   SyncRunSummary,
   GuestIncomeSyncConfig,
+  AutoSyncIntervalMinutes,
 } from "../domain/SyncRun";
+import { AUTO_SYNC_INTERVAL_OPTIONS } from "../domain/SyncRun";
 import type { PreviewItem } from "../infrastructure/csvGuestSync";
 import { runGuestSync } from "../infrastructure/csvGuestSync";
 import {
@@ -19,6 +21,7 @@ import {
   ensureFieldMappingsSeeded,
   updateFieldMappingRow,
   setAllowOverwriteFlag,
+  updateAutoSyncSettings,
   insertSyncRun,
   listSyncRuns,
   getSyncMetadata,
@@ -107,6 +110,37 @@ export async function setAllowOverwrite(
     await logErrorServer({
       module: "features/sync/setAllowOverwrite",
       errorMessage: err instanceof Error ? err.message : "Unknown error",
+    });
+    return { ok: false, code: "unknown_error" };
+  }
+}
+
+export async function updateAutoSync(
+  projectId: string,
+  autoSyncEnabled: boolean,
+  syncIntervalMinutes: AutoSyncIntervalMinutes
+): Promise<ActionResult<null>> {
+  if (!AUTO_SYNC_INTERVAL_OPTIONS.includes(syncIntervalMinutes)) {
+    return { ok: false, code: "invalid_input" };
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { error } = await updateAutoSyncSettings(
+      supabase,
+      projectId,
+      autoSyncEnabled,
+      syncIntervalMinutes
+    );
+    if (error) return { ok: false, code: mapSupabaseError(error) };
+
+    revalidatePath("/settings/integrations");
+    return { ok: true, data: null };
+  } catch (err) {
+    await logErrorServer({
+      module: "features/sync/updateAutoSync",
+      errorMessage: err instanceof Error ? err.message : "Unknown error",
+      projectId,
     });
     return { ok: false, code: "unknown_error" };
   }
